@@ -9,27 +9,16 @@
 # 5) vep annotations folder (organized by chromosome)
 # 6) output folder for plots
 
-# [ -d $1 ] || mkdir $1
-# [ -d $1/variant_ids ] || mkdir $1/variant_ids \
-#                                 $1/refseq \
-#                                 $1/unannot_vcf \
-#                                 $1/annot_table \
-#                                 $1/annot_vcf \
-#                                 $1/annot_vcl \
-#                                 $1/sample_names
-# [ -d $2 ] || mkdir $2
-# [ -d $6 ] || mkdir $6
-mkdir $1
-mkdir $1/variant_ids \
-        $1/refseq \
-        $1/unannot_vcf \
-        $1/annot_table \
-        $1/annot_vcf \
-        $1/annot_vcl \
-        $1/sample_names
-mkdir $2
-mkdir $6
-
+[ -d $1 ] || mkdir $1
+[ -d $1/variant_ids ] || mkdir $1/variant_ids \
+                                $1/refseq \
+                                $1/unannot_vcf \
+                                $1/annot_table \
+                                $1/annot_vcf \
+                                $1/annot_vcl \
+                                $1/sample_names
+[ -d $2 ] || mkdir $2
+[ -d $6 ] || mkdir $6
 
 python process_gene_list.py \
             --gene_list $3 \
@@ -59,15 +48,13 @@ while IFS=, read -r protein id chr; do
                                 $5
         
         echo "Making $protein data and plots ..."
-        # [ -d $2/$protein ] || mkdir $2/$protein
-        mkdir $2/$protein
-
-        # python process_vcf.py --vclist $1/annot_vcl/$protein.vclist.tsv \
-        #                 --variants_table $1/annot_vcl/$protein.var.table.tsv \
-        #                 --output_folder $2/$protein \
-        #                 --sample_names $1/sample_names/$protein.samples.txt \
-        #                 --refseq_fasta $1/refseq/$protein.fasta \
-        #                 --gene_symbol $protein \
-        #                 --plots_folder $6
+        [ -d $2/$protein ] || mkdir $2/$protein
+        python process_vcf.py --vclist $1/annot_vcl/$protein.vclist.tsv \
+                        --variants_table $1/annot_vcl/$protein.var.table.tsv \
+                        --output_folder $2/$protein \
+                        --sample_names $1/sample_names/$protein.samples.txt \
+                        --refseq_fasta $1/refseq/$protein.fasta \
+                        --gene_symbol $protein \
+                        --plots_folder $6
         echo "Done."
 done < $1/genetable.csv

@@ -14,6 +14,7 @@ args = parser.parse_args()
 gene_list = []
 with open(args.gene_list, 'r') as file:
     for line in file.readlines():
+        if '#' in line: break 
         gene_list.append(line.strip())
 gene_list = ','.join(gene_list)
 biomart_url = ('http://www.ensembl.org/biomart/martservice?query='

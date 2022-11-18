@@ -14,7 +14,6 @@ if __name__=="__main__":
     refseq_id, tsv_in, tsv_out, ids_out = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
     df = pd.read_table(tsv_in, sep = '\t')
-    print(f"#### LENGTH OF TABLE: {len(df)} ####")
     res_df = df[['chrom', 'position', 'variant_id', 'GIVEN_REF', 'Allele']].copy()
 
     # find our protein of interest's position in the list of proteins affected by each variant
@@ -22,7 +21,7 @@ if __name__=="__main__":
                     'EVEmap_AMINO_ACID_POS':str, 
                     'EVEmap_WT_AA':str, 
                     'EVEmap_SUBS_AA':str})
-    df['protein_idx'] = df['EVEmap_REFSEQ_PROTEIN'].str.split(',').apply(lambda x: x.index(refseq_id))
+    df['protein_idx'] = df['EVEmap_REFSEQ_PROTEIN'].str.split(',').apply(lambda x: ([y.split('.')[0] for y in x]).index(refseq_id))
 
     # add protein information
     res_df["AA_POS"] = df.apply(lambda r: r['EVEmap_AMINO_ACID_POS'].split(',')[r['protein_idx']], axis = 1)

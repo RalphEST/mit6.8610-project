@@ -61,7 +61,7 @@ efetch -db protein -id $id -format fasta > $refseq_folder/${protein}.fasta
 
 # Preparing annotation tables and generating variant ids
 echo "Preparing annotation table ..."
-grep -P "#Uploaded_variation|${id}" $vep_folder/ukb23149_c${chr}_b0_v1.coding.vep.tsv > $unproc_annot_table
+grep -P "#Uploaded_variation|${id}\." $vep_folder/ukb23149_c${chr}_b0_v1.coding.vep.tsv > $unproc_annot_table
 variants_range=$(python clean_annot.py $id $unproc_annot_table $annot_table $variant_ids_file)
 bgzip --keep $annot_table
 tabix -s 1 -b 2 -e 2 $annot_table.gz
@@ -71,7 +71,18 @@ rm $unproc_annot_table
 
 # Filtering population-level VCF file using genomic region and variant IDs
 echo "Filtering and tagging pop-level VCF ..."
-bcftools view -Oz -r $chr:$variants_range \
+
+if [[ $chr == 'X' ]] 
+then
+    chrloc=23
+elif [[ $chr == 'Y' ]] 
+then
+    chrloc=24
+else
+    chrloc=$chr
+fi
+
+bcftools view -Oz -r $chrloc:$variants_range \
                 $pop_vcf_folder/ukb23149_c${chr}_b0_v1.filtered.vcf.gz > $region_filtered_vcf_file
 
 plink2 --vcf $region_filtered_vcf_file \

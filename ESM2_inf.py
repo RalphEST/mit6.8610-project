@@ -42,6 +42,7 @@ Inference_Loader = DataLoader(tokenized_data, batch_size=batch_size, shuffle=Tru
 embeddings = []
 count = 0
 verbose = 0
+average = False
 print("Starting inference")
 for batch in Inference_Loader:
   #
@@ -55,11 +56,16 @@ for batch in Inference_Loader:
   outputs = model(b_input_ids, attention_mask=b_input_mask)
   embedding = outputs.last_hidden_state
   embedding = embedding.detach().cpu().numpy()
+  # print(embedding.shape)
+  
+  if(average == True):
+  	embedding = np.mean(embedding,axis=2)
+  	# print(embedding.shape)
   embeddings.append(embedding)
 
   count+=1
-  # if(count == 5):
-  # 	break
+  if(count == 1):
+  	break
   if(verbose):
   	print("Done upto batch",count)
 

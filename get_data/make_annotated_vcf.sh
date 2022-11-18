@@ -61,8 +61,7 @@ efetch -db protein -id $id -format fasta > $refseq_folder/${protein}.fasta
 
 # Preparing annotation tables and generating variant ids
 echo "Preparing annotation table ..."
-grep -P "#Uploaded_variation|${id}" \
-        $vep_folder/ukb23149_c${chr}_b0_v1.coding.vep.tsv > $unproc_annot_table
+grep -P "#Uploaded_variation|${id}" $vep_folder/ukb23149_c${chr}_b0_v1.coding.vep.tsv > $unproc_annot_table
 variants_range=$(python clean_annot.py $id $unproc_annot_table $annot_table $variant_ids_file)
 bgzip --keep $annot_table
 tabix -s 1 -b 2 -e 2 $annot_table.gz

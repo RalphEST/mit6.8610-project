@@ -14,6 +14,7 @@ if __name__=="__main__":
     refseq_id, tsv_in, tsv_out, ids_out = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
     df = pd.read_table(tsv_in, sep = '\t')
+    print(f"#### LENGTH OF TABLE: {len(df)} ####")
     res_df = df[['chrom', 'position', 'variant_id', 'GIVEN_REF', 'Allele']].copy()
 
     # find our protein of interest's position in the list of proteins affected by each variant

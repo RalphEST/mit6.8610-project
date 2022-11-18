@@ -1,15 +1,7 @@
 #!/bin/bash
-#SBATCH -n 1
-#SBATCH -c 12
-#SBATCH --mem=25G
-#SBATCH -p priority
-#SBATCH -t 0-04:00
-#SBATCH -o slurm_jobs/makedata_%j.out
-#SBATCH -e slurm_jobs/makedata_%j.err
-#SBATCH --mail-user=ralphestanboulieh@hms.harvard.edu
-#SBATCH --mail-type=ALL
 
 # Inputs:
+# -------------------------------------------------------
 # 1) output folder for VCFs
 # 2) output folder for ML-ready data and plots
 # 3) gene list file (one gene per line)
@@ -17,9 +9,16 @@
 # 5) vep annotations folder (organized by chromosome)
 # 6) output folder for plots
 
-module load gcc/9.2.0 bcftools/1.14 conda3 plink2/2.0
-source activate myjupyter
-
+# [ -d $1 ] || mkdir $1
+# [ -d $1/variant_ids ] || mkdir $1/variant_ids \
+#                                 $1/refseq \
+#                                 $1/unannot_vcf \
+#                                 $1/annot_table \
+#                                 $1/annot_vcf \
+#                                 $1/annot_vcl \
+#                                 $1/sample_names
+# [ -d $2 ] || mkdir $2
+# [ -d $6 ] || mkdir $6
 mkdir $1
 mkdir $1/variant_ids \
         $1/refseq \
@@ -29,6 +28,7 @@ mkdir $1/variant_ids \
         $1/annot_vcl \
         $1/sample_names
 mkdir $2
+mkdir $6
 
 
 python process_gene_list.py \
@@ -59,13 +59,15 @@ while IFS=, read -r protein id chr; do
                                 $5
         
         echo "Making $protein data and plots ..."
+        # [ -d $2/$protein ] || mkdir $2/$protein
         mkdir $2/$protein
-        python process_vcf.py --vclist $1/annot_vcl/$protein.vclist.tsv \
-                        --variants_table $1/annot_vcl/$protein.var.table.tsv \
-                        --output_folder $2/$protein \
-                        --sample_names $1/sample_names/$protein.samples.txt \
-                        --refseq_fasta $1/refseq/$protein.fasta \
-                        --gene_symbol $protein \
-                        --plots_folder $6
+
+        # python process_vcf.py --vclist $1/annot_vcl/$protein.vclist.tsv \
+        #                 --variants_table $1/annot_vcl/$protein.var.table.tsv \
+        #                 --output_folder $2/$protein \
+        #                 --sample_names $1/sample_names/$protein.samples.txt \
+        #                 --refseq_fasta $1/refseq/$protein.fasta \
+        #                 --gene_symbol $protein \
+        #                 --plots_folder $6
         echo "Done."
 done < $1/genetable.csv

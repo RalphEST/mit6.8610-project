@@ -40,7 +40,7 @@ biomart_url = ('http://www.ensembl.org/biomart/martservice?query='
                '<Attribute name = "transcript_length" />'
                '</Dataset></Query>')
 batch_command = ["wget", "-O", "biomart_table.tsv", f"{biomart_url}"]
-# subprocess.run(batch_command)
+subprocess.run(batch_command)
 
 # read biomart table
 biomart_df = pd.read_csv('biomart_table.tsv', sep='\t')

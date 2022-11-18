@@ -130,3 +130,5 @@ dmypy.json
 
 ###### CUSTOM ######
 data/
+slurm_jobs/
+scratch*

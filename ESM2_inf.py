@@ -8,7 +8,17 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
-tokenizer = EsmTokenizer.from_pretrained("facebook/esm2_t33_650M_UR50D")
+########GLOBAL Params#################
+model_small = "facebook/esm2_t6_8M_UR50D"
+model_medium = "facebook/esm2_t12_35M_UR50D"
+model_large = "facebook/esm2_t33_650M_UR50D"
+model_pth = model_small
+count = 0
+verbose = 0
+average = True
+
+#####################################
+
 
 def tokenizer_function(input_data):
   input_ids = []
@@ -30,9 +40,11 @@ else:
   print('WARNING: you are running this code on a cpu!')
   device = 'cpu'
 
-
-model = EsmModel.from_pretrained("facebook/esm2_t33_650M_UR50D")
+tokenizer = EsmTokenizer.from_pretrained(model_pth)
+model = EsmModel.from_pretrained(model_pth)
 model.to(device)
+
+
 input_data = np.load("data/toy_data/mutseqs.npy")
 tokenized_data = tokenizer_function(input_data)
 
@@ -40,9 +52,7 @@ batch_size = 1
 Inference_Loader = DataLoader(tokenized_data, batch_size=batch_size, shuffle=True)
 
 embeddings = []
-count = 0
-verbose = 0
-average = False
+
 print("Starting inference")
 for batch in Inference_Loader:
   #
@@ -59,13 +69,13 @@ for batch in Inference_Loader:
   # print(embedding.shape)
   
   if(average == True):
-  	embedding = np.mean(embedding,axis=2)
+  	embedding = np.mean(embedding,axis=1)
   	# print(embedding.shape)
   embeddings.append(embedding)
 
   count+=1
-  if(count == 1):
-  	break
+  # if(count == 1):
+  # 	break
   if(verbose):
   	print("Done upto batch",count)
 

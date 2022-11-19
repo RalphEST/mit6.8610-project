@@ -119,9 +119,13 @@ def plot_sequence_variation_content(gene_symbol,
     n_unique_var_seqs = len(seq_table)-1
     counts_per_nvars = [seq_table[seq_table['n_vars']==n]['seq_count'].value_counts() for n in unique_n_vars]
     counts_per_nvars = [c.sort_index() for c in counts_per_nvars]
-
-    for counts in counts_per_nvars:
-        ax.step(counts.index, np.cumsum(counts.values[::-1])[::-1])
+    
+    cmap = plt.get_cmap('RdBu')
+    
+    for i,counts in enumerate(counts_per_nvars):
+        ax.step(counts.index, 
+                np.cumsum(counts.values[::-1])[::-1],
+                color = cmap(i/len(counts_per_nvars)))
 
     ax.set_yscale('log')
     ax.set_xscale('log')

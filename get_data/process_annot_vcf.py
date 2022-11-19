@@ -113,7 +113,7 @@ seq_table = pd.concat((pd.DataFrame({'vars_list': '0', 'n_vars':0},
                                     index=['seq_0']), 
                        seq_table))
 
-# reorganizing and svaing space
+# reorganizing and saving space
 seq_table['n_vars'] = seq_table['n_vars'].astype(np.uint8)
 seq_table.index.name = 'seq_id'
 seq_table = seq_table.reset_index()

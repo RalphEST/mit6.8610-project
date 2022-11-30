@@ -47,6 +47,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     
     # common args
+    
     parser.add_argument("--pretrained_model", type=str, default='esm1v', help="pretrained model",choices=["esm2small","esm2medium","esm2large","esm1v"])
     parser.add_argument("--output_dir", type=str, default=OUTPUT_DIR, help="output directory for results")
     parser.add_argument("--average",action='store_true', help="Average the embeddings")
@@ -64,14 +65,15 @@ def main(args):
 	else:
 	  print('WARNING: you are running this code on a cpu!')
 	  device = 'cpu'
-	
+	#Loading Model
 	model_pth = models[args.pretrained_model]
 	tokenizer = EsmTokenizer.from_pretrained(model_pth)
 	model = EsmModel.from_pretrained(model_pth)
 	model.to(device)
-
+	
 
 	input_data = np.load(args.input)
+	#Tokenization	
 	tokenized_data = tokenizer_function(input_data,tokenizer)
 
 	batch_size = 1
@@ -96,12 +98,11 @@ def main(args):
 	  
 	  if(average == True):
 	  	embedding = np.mean(embedding,axis=1)
-	  	# print(embedding.shape)
+	  	
 	  embeddings.append(embedding)
 	  global count
 	  count+=1
-	  # if(count == 1):
-	  # 	break
+	  
 	  if(verbose):
 	  	print("Done upto batch",count)
 
@@ -111,6 +112,9 @@ def main(args):
 	np.save("{}/ESMEmbed.npy".format(args.output_dir),embeddings)
 
 if __name__ == "__main__":
+    # Pretrained model can be 4 in nature esm2small, esm2medium, esm2large or esm1-v
+    # The input is parsed as a mutated sequence matrix preferably in numpy format (NOT ONE-HOT ENCODED)
+  
     args = parse_args()
     # print(args)
     main(args)

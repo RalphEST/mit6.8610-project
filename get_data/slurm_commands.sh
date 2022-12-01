@@ -17,4 +17,4 @@ bash make_data.sh ../data/temp \
                     ../gene_list.txt \
                     $ukbbdir/pop_vcf \
                     $ukbbdir/vep \
-                    ../figures/prelim_data_plots
+                    ../figures/init_data_plots

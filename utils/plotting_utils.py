@@ -113,19 +113,27 @@ def plot_variation_summary(gene_symbol,
 
 def plot_sequence_variation_content(gene_symbol, 
                                     seq_table,
-                                    ax):
+                                    ax, legend_kwargs):
+    
+    unique_n_vars = sorted(seq_table[seq_table['n_vars']>0]['n_vars'].unique())
 
-    unique_n_vars = sorted(seq_table.loc[seq_table['n_vars'] > 0, 'n_vars'].unique())
+    
     n_unique_var_seqs = len(seq_table)-1
     counts_per_nvars = [seq_table[seq_table['n_vars']==n]['seq_count'].value_counts() for n in unique_n_vars]
     counts_per_nvars = [c.sort_index() for c in counts_per_nvars]
     
-    cmap = plt.get_cmap('RdBu')
+    cmap = plt.get_cmap('coolwarm_r')
     
     for i,counts in enumerate(counts_per_nvars):
         ax.step(counts.index, 
                 np.cumsum(counts.values[::-1])[::-1],
-                color = cmap(i/len(counts_per_nvars)))
+                color = cmap(i/(len(unique_n_vars)-1)) if len(unique_n_vars)>1 else "k")
+        
+    if len(unique_n_vars)>1:
+        all_counts = seq_table[seq_table['n_vars']>0]['seq_count'].value_counts().sort_index()
+        ax.step(all_counts.index, 
+                np.cumsum(all_counts.values[::-1])[::-1],
+                color = "k")
 
     ax.set_yscale('log')
     ax.set_xscale('log')
@@ -133,4 +141,6 @@ def plot_sequence_variation_content(gene_symbol,
     ax.set_xlabel('allele count (AC)')
     ax.set_ylabel(r'# sequences $\geq$ AC')
     ax.set_title(f"{gene_symbol} ({n_unique_var_seqs})", weight="bold")
-    ax.legend(unique_n_vars, title = "# SNPs")
+    ax.legend(unique_n_vars + ["all"], 
+              title = "# SNPs", 
+              **legend_kwargs)

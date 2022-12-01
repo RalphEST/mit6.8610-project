@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 
 ###### CUSTOM ######
-data/
+data*/
 slurm_jobs/
 scratch*

@@ -8,6 +8,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import argparse
+from Bio import SeqIO
 
 ########GLOBAL Params#################
 models={
@@ -23,12 +24,21 @@ models={
 #model_pth = model_small
 count = 0
 verbose = 0
-average = True
+average = False
 
 OUTPUT_DIR = "./"
 
 #####################################
 
+def loadFasta(fasta_file):
+    fasta_sequences = SeqIO.parse(open(fasta_file),'fasta')
+    input_data = []
+    for fasta in fasta_sequences:
+        name, sequence = fasta.id, str(fasta.seq)
+        input_data.append(sequence)
+    
+    return input_data
+        
 
 def tokenizer_function(input_data,tokenizer):
   input_ids = []
@@ -52,10 +62,13 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default=OUTPUT_DIR, help="output directory for results")
     parser.add_argument("--average",action='store_true', help="Average the embeddings")
     parser.add_argument("--input",type=str,required=True,help = "input file containing the sequences")
-
+    parser.add_argument("--batch-size","-bs",type=int,required=False,default=1,help="Batch size of the sequence generator")
+    parser.add_argument("--verbose",action='store_true',help="Verbosity")
+    parser.add_argument("--output_file",type=str,default="ESMembed.npy",help="output file name")
+    
     
     args = parser.parse_args()
-    
+    # print(args.average)
     return args
 
 def main(args):
@@ -70,14 +83,13 @@ def main(args):
 	tokenizer = EsmTokenizer.from_pretrained(model_pth)
 	model = EsmModel.from_pretrained(model_pth)
 	model.to(device)
-	
-
-	input_data = np.load(args.input)
+	# model.cuda().half()
+	input_data = loadFasta(args.input)
 	#Tokenization	
 	tokenized_data = tokenizer_function(input_data,tokenizer)
 
-	batch_size = 1
-	Inference_Loader = DataLoader(tokenized_data, batch_size=batch_size, shuffle=True)
+	batch_size = args.batch_size
+	Inference_Loader = DataLoader(tokenized_data, batch_size=batch_size, shuffle=False)
 
 	embeddings = []
 
@@ -96,20 +108,20 @@ def main(args):
 	  embedding = embedding.detach().cpu().numpy()
 	  # print(embedding.shape)
 	  
-	  if(average == True):
+	  if(args.average == True):
 	  	embedding = np.mean(embedding,axis=1)
 	  	
 	  embeddings.append(embedding)
 	  global count
 	  count+=1
 	  
-	  if(verbose):
+	  if(args.verbose):
 	  	print("Done upto batch",count)
 
 	embeddings = np.array(embeddings)
 	print(embeddings.shape,embeddings[0].shape)
 
-	np.save("{}/ESMEmbed.npy".format(args.output_dir),embeddings)
+	np.save("{}/{}.npy".format(args.output_dir,args.output_file),embeddings)
 
 if __name__ == "__main__":
     # Pretrained model can be 4 in nature esm2small, esm2medium, esm2large or esm1-v

@@ -7,6 +7,7 @@ Using Transformers, transfer learning, and biologically-informed attention to pr
 
 ## Documentation
 ### Data organization
+<img width="600" alt="image" src="https://user-images.githubusercontent.com/34459243/205469380-ad9e68ee-178b-4d7c-8328-dfa889b7c432.png">
 
 Exome sequencing data is first filtered, annotated, and processed to generate the following structure. Each gene has its own directory in which are stored the following data:
   - The variants table: a Pandas `DataFrame` stored as `variants_table.parquet`. Each row is a variant, and the columns are:

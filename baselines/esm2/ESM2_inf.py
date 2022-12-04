@@ -58,7 +58,11 @@ def parse_args():
     
     # common args
     
-    parser.add_argument("--pretrained_model", type=str, default='esm1v', help="pretrained model",choices=["esm2small","esm2medium","esm2large","esm1v"])
+    parser.add_argument("--pretrained_model", 
+                        type=str, 
+                        default='esm1v', 
+                        help="pretrained model",
+                        choices=["esm2small","esm2medium","esm2large","esm1v"])
     parser.add_argument("--output_dir", type=str, default=OUTPUT_DIR, help="output directory for results")
     parser.add_argument("--average",action='store_true', help="Average the embeddings")
     parser.add_argument("--input",type=str,required=True,help = "input file containing the sequences")

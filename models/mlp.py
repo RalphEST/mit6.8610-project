@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import List
 
-
 class MLP(nn.Module):
     def __init__(self, 
                  in_dim: int, 
@@ -33,9 +32,10 @@ class MLP(nn.Module):
             'sigmoid': nn.Sigmoid(), 
             'selu': nn.SELU(), 
             'softplus': nn.Softplus(), 
-            'gelu': nn.GELU()
+            'gelu': nn.GELU(),
+            None: None,
+            'None': None
         }
-        
         norm2normlayer = {'bn': nn.BatchNorm1d(in_dim), 
                           'ln': nn.LayerNorm(in_dim), 
                           None: None, 
@@ -46,7 +46,6 @@ class MLP(nn.Module):
         assert norm in norm2normlayer.keys(), "Invalid normalization option"
         assert order in ['nd', 'dn'], "Invalid normalization/dropout order"
         
-        self.n_layer = len(hidden_dims) - 1
         self.in_dim = in_dim
         self.hidden_hims = hidden_dims
         self.out_dim = out_dim
@@ -54,32 +53,36 @@ class MLP(nn.Module):
         actn = actn2actfunc[actn]
         norm = norm2normlayer[norm]
         
-        # input layer
-        layers = [nn.Linear(self.in_dim, hidden_dims[0]), actn]
-        
-        # hidden layers
-        for i in range(self.n_layer):
-            layers += self.compose_layer(
-                in_dim=hidden_dims[i], 
-                out_dim=hidden_dims[i+1], 
-                norm=norm, 
-                actn=actn, 
-                p_dropout=p_dropout, 
-                order=order
-            )
-            
-        # output layer
-        layers.append(nn.Linear(hidden_dims[-1], out_dim))
+        if len(hidden_dims)>0:
+            # input layer
+            layers = [nn.Linear(self.in_dim, hidden_dims[0]), actn]
+
+            # hidden layers
+            for i in range(len(hidden_dims) - 1):
+                layers += self.add_layer(
+                    in_dim=hidden_dims[i], 
+                    out_dim=hidden_dims[i+1], 
+                    norm=norm, 
+                    actn=actn, 
+                    p_dropout=p_dropout, 
+                    order=order
+                )
+
+            # output layer
+            layers.append(nn.Linear(hidden_dims[-1], out_dim))
+        else:
+            layers = [nn.Linear(self.in_dim, self.out_dim)]
+            layers += [actn] if actn else []
 
         self.fc = nn.Sequential(*layers)
 
-    def compose_layer(self,
-                      in_dim: int,
-                      out_dim: int,
-                      norm: str,
-                      actn: nn.Module,
-                      p_dropout: float = 0.0,
-                      order: str = 'nd'):
+    def add_layer(self,
+                  in_dim: int,
+                  out_dim: int,
+                  norm: str,
+                  actn: nn.Module,
+                  p_dropout: float = 0.0,
+                  order: str = 'nd'):
                 
         # norm -> dropout or dropout -> norm
         if order == 'nd':

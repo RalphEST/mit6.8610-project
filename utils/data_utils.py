@@ -1,6 +1,7 @@
 # basics
 import pandas as pd
 import numpy as np
+import os, sys
 
 # PyTorch imports
 import torch
@@ -180,7 +181,11 @@ class VariationDataset(Dataset):
         return len(self.samples)
     
     def __getitem__(self, pid):
-        item_dict = {"label": self.patients.loc[pid, self.phenotype_cols].to_numpy().item()}
+        # the label
+        label = self.patients.loc[pid, self.phenotype_cols].to_numpy().astype(float)
+        item_dict = {"labels": label}
+        
+        # the features
         xseq_id = self.patients.loc[pid, 'xseq_id']
         seq_ids = self.sequences['all'].loc[xseq_id, self.seq_id_columns].to_list()
         seq_idxs = [int(i[4:]) for i in seq_ids]
@@ -232,4 +237,44 @@ class VariationDatasetSplit(Dataset):
             weights = np.array([1e3/class_weights[s] for s in self.samples_df[on].to_list()])
         
         return weights**flatten_factor
+    
+def load_variation_dataset(data_dir, 
+                           gene_list, 
+                           data_types, 
+                           phenotypes_path, 
+                           embeddings_file=None,
+                           hap_collapse_funcs=None,
+                           keep_genes_separate=False,
+                           balance_on=None,
+                           train_fraction =0.8):
+    table_paths = {g:{'variants': os.path.join(data_dir, g, 'variants_table.parquet'), 
+                  'sequences': os.path.join(data_dir, g, 'seq_table.parquet'), 
+                  'patients': os.path.join(data_dir, g, 'patients_table.parquet'),
+                  'haplotypes': os.path.join(data_dir, g, 'hap_table.parquet')} for g in gene_list}
+    data_type_2_file_name = {
+        "one-hot-encodings": 'hap_data.npy',
+        "indicators": 'hap_indicator.npy',
+        "seq-var-matrix": 'seq_var_matrix.npy',
+        "embeddings": embeddings_file
+    }
+    data_paths = {g:{dt:os.path.join(data_dir, g, data_type_2_file_name[dt]) 
+                     for dt in data_types} 
+                  for g in gene_list}
+    
+    phenotypes = pd.read_parquet(phenotypes_path)
+    
+    data = VariationDataset(table_paths=table_paths, 
+                            data_paths=data_paths, 
+                            phenotypes=phenotypes,
+                            hap_collapse_funcs=hap_collapse_funcs,
+                            keep_genes_separate=keep_genes_separate)
+
+    return data.train_test_split(balance_on=balance_on, train_fraction=train_fraction)
+
+def batch_dict_to_device(batch_dict, device):
+    for k,v in batch_dict.items():
+        if torch.is_tensor(v):
+            batch_dict[k] = v.to(device).float()
+        elif isinstance(v, dict):
+            batch_dict_to_device(v, device).float()
         

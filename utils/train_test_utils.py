@@ -18,45 +18,113 @@ def get_root_logger(fname=None, file=True):
 
 # (supervised) training
 
-def train_epoch(model, 
-                train_loader, 
-                optimizer, 
-                loss_fn, 
-                batch_size, 
-                logger, 
-                device):
+def train_epoch(model, train_loader, optimizer, loss_fn, log_every=10):
     model.train()
-    train_size = len(train_loader.dataset)
-    total_sample = total_loss = 0
-    all_y = torch.tensor([])
-    all_preds = torch.tensor([])
-    for i, (X, y) in enumerate(train_loader):
-        all_y = torch.cat([all_y, y])
-        X, y = X.to(device), y.to(device)
-        optimizer.zero_grad()
-
-        preds = model(X)
-        loss = loss_fn(preds, y.float())
+    total_loss = 0
+    
+    all_labels, all_preds = [],[]
+    for i, batch in enumerate(train_loader):
+        # move batch dictionary to device
+        data_utils.batch_dict_to_device(batch, device)
+        labels, features = batch['labels'], batch['seq-var-matrix']
         
+        # compute prediction and loss
+        preds = model(features)
+        loss = loss_fn(preds, labels)
+
+        # backpropagation
+        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        
+        # tracking
+        total_loss += loss.item()
+        all_labels.append(labels.cpu())
+        all_preds.append(preds.flatten().detach().cpu())
+        
+        # logging
+        if (i % log_every == 0):
+            print(f"\tBatch {i} | BCE Loss: {loss.item():.4f}")
+    
+    metrics = eval_utils.get_metrics(torch.cat(all_labels), 
+                                     torch.cat(all_preds))
+    metrics['loss'] = total_loss
+    
+    return metrics
 
-        all_preds = torch.cat([all_preds, preds.cpu()])
-        total_sample += batch_size
-        total_loss += float(loss) * batch_size
+def test(model, test_loader, loss_fn):
+    model.eval()
+    total_loss = 0
+    all_labels, all_preds = [],[]
+    with torch.no_grad():
+        for i, batch in tqdm(enumerate(test_loader)):
+            # move batch dictionary to device
+            data_utils.batch_dict_to_device(batch, device)
+            labels, features = batch['labels'], batch['seq-var-matrix']
 
-        if i % 20 == 0:
-            loss, current = loss.item(), i * len(X)
-            logger.warning(f'train loss: {loss:.4f} [{current}/{train_size}]')
+            # compute prediction and loss
+            preds = model(features)
+            loss = loss_fn(preds, labels)
+
+            # tracking
+            total_loss += loss.item()
+            
+            all_labels.append(labels.cpu())
+            all_preds.append(preds.flatten().detach().cpu())
     
-    all_y = all_y.detach().numpy().astype(int)
-    all_preds = F.sigmoid(all_preds).detach().numpy()
+    metrics = eval_utils.get_metrics(torch.cat(all_labels), 
+                                     torch.cat(all_preds))
+    metrics['loss'] = total_loss
     
-    auroc_macro, auroc_micro, auroc_weighted, auprc_macro, auprc_micro, auprc_weighted, fmax_macro = tuple(get_metrics(all_preds, all_y).values())
+    return metrics
+
+def train(model, 
+          train_dataset,
+          test_dataset, 
+          lr=1e-3, 
+          n_epochs=10,
+          batch_size=256):
     
-    logger.warning('Train metrics:')
-    logger.warning(f'auroc_macro = {auroc_macro}, auroc_micro = {auroc_micro}, auroc_weighted = {auroc_weighted}, auprc_macro = {auprc_macro}, auprc_micro = {auprc_micro}, auprc_weighted = {auprc_weighted}, fmax_macro = {fmax_macro}')
+    train_loader = DataLoader(
+        dataset = train_dataset, 
+        batch_size = batch_size,
+        sampler = WeightedRandomSampler(train_dataset.weights('131338-0.0'), 
+                                        num_samples = len(train_dataset)),
+        num_workers=12
+    )
     
-    total_loss = total_loss / total_sample  # weighted total train loss
+    test_loader = DataLoader(
+        dataset = test_dataset,
+        batch_size = batch_size,
+        num_workers=12
+    )
     
-    return total_loss, auprc_macro, all_y, all_preds
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    
+    loss_fn = nn.BCEWithLogitsLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    
+    track_metrics = {'train':{i:None for i in range(n_epochs)}, 
+                     'test': {i:None for i in range(n_epochs)}}
+    
+    for epoch in range(n_epochs):
+        print(f"Epoch #{epoch}:")
+        train_metrics = train_epoch(model, 
+                                    train_loader, 
+                                    optimizer, 
+                                    loss_fn, 
+                                    log_every=10)
+        print("Train metrics:")
+        eval_utils.print_metrics(train_metrics)
+        test_metrics = test(model, 
+                            test_loader, 
+                            loss_fn)
+        print("Test metrics:")
+        eval_utils.print_metrics(test_metrics)
+        
+        track_metrics['train'][epoch] = train_metrics
+        track_metrics['test'][epoch] = test_metrics
+    
+    return track_metrics
+

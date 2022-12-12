@@ -6,13 +6,15 @@ import os, sys
 # PyTorch imports
 import torch
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
+from torch_geometric.data import Data
 
 # sklearn imports
 from sklearn.model_selection import train_test_split
 
 default_hap_collapse_funcs = {'one-hot-encodings': lambda x: np.sum(x, axis=0), 
                               'embeddings': lambda x: x[0], 
-                              'indicators': lambda x: np.sum(x, axis=0)}
+                              'indicators': lambda x: np.sum(x, axis=0),
+                              'esm-tokens': lambda x: x[0]}
 
 class VariationDataset(Dataset):
     """
@@ -22,7 +24,9 @@ class VariationDataset(Dataset):
     def __init__(self, 
                  table_paths,
                  data_paths,
-                 phenotypes, 
+                 phenotypes_path,
+                 predict,
+                 ppi_graph_path=None,
                  hap_collapse_funcs=None,
                  keep_genes_separate=True):
         """    
@@ -40,19 +44,22 @@ class VariationDataset(Dataset):
             {'one-hot-encodings': path/to/one/hot/encodings.npy
              'embeddings': path/to/sequence/embeddings.npy,
              'indicators': path/to/variant/position/indicators.npy,
-             'seq-var-matrix': path/to/sequence/variant/matrix.npy}
+             'seq-var-matrix': path/to/sequence/variant/matrix.npy,
+             'esm-tokens': path/to/unique/sequence/esm/tokens.npy}
              Only the data needed for the analysis should be added to the `data_paths` 
              dictionaries.
-        * `phenotypes`:
-            Pandas DataFrame with index `patient_id` and at least one column of phenotypes of
-            interest. The patient IDs should be of dtype `str` and should match the IDs in
-            the patients table. 
+        * `phenotypes_path`:
+            Path to Pandas DataFrame with index `patient_id` and at least one column of 
+            phenotypes of interest. The patient IDs should be of dtype `str` and should 
+            match the IDs in the patients table.
+        * `ppi_graph`:
+            Path to protein-protein interactions table.
         * `hap_collapse_funcs`:
             Dictionary of functions to deal with haplotypes. Keys can be one or more of the
             following: `one-hot-encodings`, `embeddings`, and `indicators`. (The sequence-
             variant matrix, because it is genotype-level, does not require haplotype merging.)
             The default functions sum up the one-hot-encodings and indicators and pick the
-            first embedding of the two haplotypes.
+            first embedding and tokens list of the two haplotypes.
         * `keep_genes_separate`:
             If `True`, `__getitem__` returns, per each data type selected, a dictionary of
             genes and their respective data. If `False`, data is concatenated across all genes
@@ -61,13 +68,16 @@ class VariationDataset(Dataset):
         """
         self.table_paths = table_paths
         self.data_paths = data_paths
-        self.phenotypes = phenotypes
+        self.predict = predict
+        self.phenotypes_path = phenotypes_path
+        self.ppi_graph_path = ppi_graph_path
         self.hap_collapse_funcs = hap_collapse_funcs if hap_collapse_funcs else default_hap_collapse_funcs
         self.keep_genes_separate = keep_genes_separate
         
         self.gene_names = list(table_paths.keys())
         self.seq_id_columns = [g+":seq_id" for g in self.gene_names]
         self.n_genes = len(self.gene_names)
+        self.gene_to_index = {g:i for i,g in enumerate(self.gene_names)}
         self.many_genes = (self.n_genes > 1)
         self.data_types = list(data_paths.values())[0]
         
@@ -106,7 +116,7 @@ class VariationDataset(Dataset):
             self.summary[gene] = {"length": seq_length, 
                                   "n_vars": len(self.variants[gene]), 
                                   "n_seqs": len(self.sequences[gene])}
-            print("Done.")
+            print("Done")
         
         print("Combining tables ...", end=" ")
         if not self.many_genes:
@@ -155,45 +165,88 @@ class VariationDataset(Dataset):
         self.summary = pd.DataFrame(self.summary).T
         self.summary.loc['all'] = self.summary.sum(0)
         self.summary.loc['all', 'n_seqs'] = len(self.sequences['all'])
-        print("Done.")
+        
+        # optimizing
+        # this step speeds up datum retrieval at the expense of space
+        self.xseq_id_to_seq_idxs = self.sequences['all'][self.seq_id_columns].apply(lambda r: [int(s[4:]) for s in r])
+        
+        for g in self.gene_names:
+            self.sequences[g]['hap_list'] = self.sequences[g][['hap0', 'hap1']]\
+                                                .apply(lambda r: [int(r[0][4:]), int(r[1][4:])], 
+                                                       axis=1)
+            self.sequences['all'] = pd.merge(left=self.sequences['all'],
+                                             right=self.sequences[g]['hap_list'].to_frame(g+':hap_list'),
+                                             left_on=g+":seq_id",
+                                             right_index=True)
+        self.hap_list_columns = [g+":hap_list" for g in self.gene_names]
+        self.xseq_id_to_hap_idxs = self.sequences['all'][self.hap_list_columns]
+        self.sequences['all'] = self.sequences['all'].drop(columns=self.hap_list_columns)
+        print("Done")
         
         print("Integrating with phenotypes data ...", end="")
-        self.phenotype_cols = phenotypes.columns.to_list()
+        self.phenotypes = pd.read_parquet(phenotypes_path)
+        self.phenotype_cols = self.phenotypes.columns.to_list()
         self.patients = pd.merge(left=self.patients,
-                                 right=phenotypes,
+                                 right=self.phenotypes,
                                  left_index=True,
                                  right_index=True,
-                                 how='left')
+                                 how='inner')
         self.patients = self.patients.dropna(axis='index', 
-                                             how='all', 
+                                             how='any', 
                                              subset=self.phenotype_cols)
         self.sample_names = self.patients.index.to_list()
-        print("Done.")
+        print("Done")
+        
+        if self.ppi_graph_path:
+            print("Processing PPI graph ...", end="")
+            self.ppi_table = pd.read_table(self.ppi_graph_path)
+            self_loops = torch.tensor([[i,i] for i in range(self.n_genes)], dtype=torch.long)
+            interactions = torch.tensor(self.ppi_table[['#node1', 'node2']].replace(self.gene_to_index).to_numpy(), 
+                                        dtype=torch.long)
+            self.edge_index = torch.cat([self_loops, 
+                                         interactions, 
+                                         interactions.flip(1)], 
+                                        axis=0).t().contiguous()
+            print("Done")
+        
         
     def train_test_split(self, balance_on=None, train_fraction=0.8):
-        self.samples_train, self.samples_test = train_test_split(self.sample_names,
-                                                                 train_size=train_fraction,
-                                                                 stratify=self.patients[balance_on] if balance_on else None)
-        
-        return VariationDatasetSplit(self, train=True), VariationDatasetSplit(self, train=False)
+        if isinstance(balance_on, str):
+            self.samples_train, self.samples_test = train_test_split(self.sample_names,
+                                                                     train_size=train_fraction,
+                                                                     stratify=self.patients[balance_on])
+        elif isinstance(balance_on, list):
+            self.patients['balance_on'] = self.patients[balance_on].astype(str)\
+                                                .apply(lambda r: ''.join(r), axis = 1)
+
+            # isolate samples in categories that only occur once (sklearn's train_test_split cannot deal with these)
+            isolated_samples = self.patients[~self.patients['balance_on'].duplicated(keep=False)].index.to_list()
+            
+            self.samples_train, self.samples_test = train_test_split(self.patients.drop(isolated_samples).index.to_list(),
+                                                                     train_size=train_fraction,
+                                                                     stratify=self.patients.drop(isolated_samples)[balance_on])
+            self.samples_train += isolated_samples
+        else:
+            self.samples_train, self.samples_test = train_test_split(self.sample_names,
+                                                                     train_size=train_fraction)
+            
+        return (VariationDatasetSplit(self, train=True), 
+                VariationDatasetSplit(self, train=False))
     
     def __len__(self):
         return len(self.samples)
     
     def __getitem__(self, pid):
         # the label
-        label = self.patients.loc[pid, self.phenotype_cols].to_numpy().astype(float)
+        label = self.patients.loc[pid, self.predict].to_numpy().astype(float)
         item_dict = {"labels": label}
         
-        # the features
+        # the sequences and haplotypes
         xseq_id = self.patients.loc[pid, 'xseq_id']
-        seq_ids = self.sequences['all'].loc[xseq_id, self.seq_id_columns].to_list()
-        seq_idxs = [int(i[4:]) for i in seq_ids]
-        hap_ids = [self.sequences[g].loc[s, ['hap0', 'hap1']].to_list() for g,s in zip(self.gene_names, seq_ids)]
-        hap_idxs = [[int(i[0][4:]), int(i[1][4:])] for i in hap_ids]
-        data = []
+        seq_idxs = self.xseq_id_to_seq_idxs.loc[xseq_id]
+        hap_idxs = self.xseq_id_to_hap_idxs.loc[xseq_id]
+
         for dt in self.data_types:
-            data = []
             if dt == "seq-var-matrix":
                 dt_data = [self.data[dt][g][i] for g,i in zip(self.gene_names, seq_idxs)]
             else:
@@ -202,8 +255,6 @@ class VariationDataset(Dataset):
                                                                                                 hap_idxs)]
             item_dict[dt] = np.concatenate(dt_data, axis=0) if not self.keep_genes_separate\
                             else {g:d for g,d in zip(self.gene_names, dt_data)}
-        
-        
         return item_dict
         
 class VariationDatasetSplit(Dataset):
@@ -241,12 +292,17 @@ class VariationDatasetSplit(Dataset):
 def load_variation_dataset(data_dir, 
                            gene_list, 
                            data_types, 
-                           phenotypes_path, 
+                           phenotypes_path,
+                           predict,
+                           ppi_graph_path=None,
                            embeddings_file=None,
                            hap_collapse_funcs=None,
-                           keep_genes_separate=False,
-                           balance_on=None,
-                           train_fraction =0.8):
+                           keep_genes_separate=False):
+    
+    if isinstance(gene_list, str):
+        with open(gene_list, 'r') as file:
+            gene_list = list([x.strip() for x in file.readlines()])
+        
     table_paths = {g:{'variants': os.path.join(data_dir, g, 'variants_table.parquet'), 
                   'sequences': os.path.join(data_dir, g, 'seq_table.parquet'), 
                   'patients': os.path.join(data_dir, g, 'patients_table.parquet'),
@@ -255,21 +311,22 @@ def load_variation_dataset(data_dir,
         "one-hot-encodings": 'hap_data.npy',
         "indicators": 'hap_indicator.npy',
         "seq-var-matrix": 'seq_var_matrix.npy',
-        "embeddings": embeddings_file
+        "embeddings": embeddings_file,
+        "esm-tokens": "hap_esm_tokens.npy"
     }
     data_paths = {g:{dt:os.path.join(data_dir, g, data_type_2_file_name[dt]) 
                      for dt in data_types} 
                   for g in gene_list}
-    
-    phenotypes = pd.read_parquet(phenotypes_path)
-    
+        
     data = VariationDataset(table_paths=table_paths, 
                             data_paths=data_paths, 
-                            phenotypes=phenotypes,
+                            phenotypes_path=phenotypes_path,
+                            predict=predict,
+                            ppi_graph_path=ppi_graph_path,
                             hap_collapse_funcs=hap_collapse_funcs,
                             keep_genes_separate=keep_genes_separate)
 
-    return data.train_test_split(balance_on=balance_on, train_fraction=train_fraction)
+    return data
 
 def batch_dict_to_device(batch_dict, device):
     for k,v in batch_dict.items():

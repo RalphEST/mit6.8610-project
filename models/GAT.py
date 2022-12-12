@@ -4,14 +4,6 @@ from torch_geometric.nn import GCNConv, GATv2Conv
 from torch import nn
 
 
-def build_graph(graph,node_embedding):
-    G = from_networkx(graph)
-    
-    G.x = torch.Tensor(node_embedding)
-
-    G = G.to(device)
-    return G
-
 # hparams = {
 #     "input_size":cuts.shape[2],
 #     "hsz":500,

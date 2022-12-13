@@ -28,7 +28,8 @@ class VariationDataset(Dataset):
                  predict,
                  ppi_graph_path=None,
                  hap_collapse_funcs=None,
-                 keep_genes_separate=True):
+                 keep_genes_separate=True,
+                 low_memory=True):
         """    
         Inputs:
         * `table_paths`: 
@@ -69,6 +70,7 @@ class VariationDataset(Dataset):
         self.table_paths = table_paths
         self.data_paths = data_paths
         self.predict = predict
+        self.low_memory = low_memory
         self.phenotypes_path = phenotypes_path
         self.ppi_graph_path = ppi_graph_path
         self.hap_collapse_funcs = hap_collapse_funcs if hap_collapse_funcs else default_hap_collapse_funcs
@@ -107,7 +109,7 @@ class VariationDataset(Dataset):
             seq_length = None
             for data_t in self.data_types:
                 self.data[data_t][gene] = np.load(data_paths[gene][data_t], 
-                                                   mmap_mode='r+')
+                                                   mmap_mode='r+' if self.low_memory else None)
                 
                 seq_length_dim = -1 if data_t in ['indicators', 'seq-var-matrix'] else 1
                 seq_length = self.data[data_t][gene].shape[seq_length_dim]
@@ -238,7 +240,7 @@ class VariationDataset(Dataset):
     
     def __getitem__(self, pid):
         # the label
-        label = self.patients.loc[pid, self.predict].to_numpy().astype(float)
+        label = self.patients.loc[pid, self.predict].values.astype(float)
         item_dict = {"labels": label}
         
         # the sequences and haplotypes
@@ -297,7 +299,8 @@ def load_variation_dataset(data_dir,
                            ppi_graph_path=None,
                            embeddings_file=None,
                            hap_collapse_funcs=None,
-                           keep_genes_separate=False):
+                           keep_genes_separate=False,
+                           low_memory=True):
     
     if isinstance(gene_list, str):
         with open(gene_list, 'r') as file:
@@ -324,7 +327,8 @@ def load_variation_dataset(data_dir,
                             predict=predict,
                             ppi_graph_path=ppi_graph_path,
                             hap_collapse_funcs=hap_collapse_funcs,
-                            keep_genes_separate=keep_genes_separate)
+                            keep_genes_separate=keep_genes_separate,
+                            low_memory=low_memory)
 
     return data
 

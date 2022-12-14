@@ -108,7 +108,10 @@ class VariationDataset(Dataset):
             # reading data
             seq_length = None
             for data_t in self.data_types:
-                self.data[data_t][gene] = np.load(data_paths[gene][data_t], 
+                if data_t == 'embeddings':
+                    self.data[data_t][gene] = torch.load(data_paths[gene][data_t])
+                else:
+                    self.data[data_t][gene] = np.load(data_paths[gene][data_t], 
                                                    mmap_mode='r+' if self.low_memory else None)
                 
                 seq_length_dim = -1 if data_t in ['indicators', 'seq-var-matrix'] else 1
@@ -183,6 +186,8 @@ class VariationDataset(Dataset):
         self.hap_list_columns = [g+":hap_list" for g in self.gene_names]
         self.xseq_id_to_hap_idxs = self.sequences['all'][self.hap_list_columns]
         self.sequences['all'] = self.sequences['all'].drop(columns=self.hap_list_columns)
+        
+        self.ac_filter = self.filter_variants_by_ac()
         print("Done")
         
         print("Integrating with phenotypes data ...", end="")
@@ -210,7 +215,11 @@ class VariationDataset(Dataset):
                                          interactions.flip(1)], 
                                         axis=0).t().contiguous()
             print("Done")
+            
         
+    def filter_variants_by_ac(self, ac_thresh_lo=1, ac_thresh_hi=np.inf):
+        self.ac_filter = [self.variants[g]['AC'].between(ac_thresh_lo, ac_thresh_hi, inclusive='both').values 
+                          for g in self.gene_names]
         
     def train_test_split(self, balance_on=None, train_fraction=0.8):
         if isinstance(balance_on, str):
@@ -250,7 +259,9 @@ class VariationDataset(Dataset):
 
         for dt in self.data_types:
             if dt == "seq-var-matrix":
-                dt_data = [self.data[dt][g][i] for g,i in zip(self.gene_names, seq_idxs)]
+                dt_data = [self.data[dt][g][i][f] for g,i,f in zip(self.gene_names, 
+                                                                   seq_idxs, 
+                                                                   self.ac_filter)]
             else:
                 dt_data = [self.hap_collapse_funcs[dt]([self.data[dt][g][i[0]], 
                                                         self.data[dt][g][i[1]]]) for g,i in zip(self.gene_names, 

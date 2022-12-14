@@ -7,27 +7,31 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
     roc_auc_score, 
-    precision_recall_curve
+    precision_recall_curve,
+    average_precision_score
 )
+
+def plot_metrics(metrics, axes):
+    metric_types = list(metrics['train'][0].keys())
+    for mt,ax in zip(metric_types, axes.flatten()):
+        ax.plot([x[mt] for x in model_metrics['train'].values()])
+        ax.plot([x[mt] for x in model_metrics['test'].values()])
+        ax.set_title(mt)
+    axes[0,0].legend(['train', 'test'])
 
 def print_metrics(metrics):
     for k,v in metrics.items():
         print(f"\t{k}: {v:.3f}")
 
 def get_metrics(y_true, y_score):
-    """
-    Get metrics for multilabel classification.
-    Parameters:
-        y_true: np.array, shape (n_samples, n_labels)
-        y_preds: np.array, shape (n_samples, n_labels)
-    """
     assert len(y_true) == len(y_score), "Predictions and labels are of different shapes"
     y_preds = torch.sigmoid(y_score).round()
     metrics = {"accuracy"  : accuracy_score(y_true, y_preds),
                "precision" : precision_score(y_true, y_preds, zero_division=0),
                "recall"    : recall_score(y_true, y_preds, zero_division=0),
                "f1"        : f1_score(y_true, y_preds, zero_division=0),
-               "AUROC"     : roc_auc_score(y_true, y_score)}
+               "AUROC"     : roc_auc_score(y_true, y_score),
+               "AUPRC"     : average_precision_score(y_true, y_score)}
             
     return metrics
 

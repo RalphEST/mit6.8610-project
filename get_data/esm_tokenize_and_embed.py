@@ -14,12 +14,12 @@ paths_dict = {g:{'fasta': f'../data/data/{g}/hap_fasta.fasta',
                   for g in gene_list}
 
 models = {
-    "esm2_t6_8M_UR50D":{'prefix':'esm2s', 
-                        'include_data': ['embeddings', 'logits', 'tokens']},
-    "esm2_t12_35M_UR50D":{'prefix':'esm2m', 
-                          'include_data': ['embeddings', 'logits']},
-    "esm2_t33_650M_UR50D":{'prefix':'esm2l', 
-                           'include_data': ['embeddings', 'logits']},
+    # "esm2_t6_8M_UR50D":{'prefix':'esm2s', 
+    #                     'include_data': ['embeddings', 'logits', 'tokens']},
+    # "esm2_t12_35M_UR50D":{'prefix':'esm2m', 
+    #                       'include_data': ['embeddings', 'logits']},
+    # "esm2_t33_650M_UR50D":{'prefix':'esm2l', 
+    #                        'include_data': ['embeddings', 'logits']},
     "esm1v_t33_650M_UR90S_1":{'prefix':'esm1v', 
                               'include_data': ['embeddings', 'logits']}
 }
@@ -31,7 +31,7 @@ for model, params in models.items():
         include_data=params['include_data'],
         output_files=[params['prefix']+'_'+d for d in params['include_data']],
         toks_per_batch=4096,
-        truncation_seq_length=2500
+        truncation_seq_length=4096
     )
     
 

@@ -1,3 +1,5 @@
+import os, sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,9 +12,10 @@ sys.path.insert(1, PROJECT_PATH)
 from utils import (
     constants
 )
-
-import mlp
-import gnn
+from models import (
+    mlp,
+    gnn
+)
 
 class ESMTransferLearner(nn.Module):
     def __init__(self,
@@ -24,7 +27,8 @@ class ESMTransferLearner(nn.Module):
                  add_residue_features={},
                  add_protein_features={},
                  edge_index=None,
-                 first_finetune_layer=None):
+                 first_finetune_layer=None,
+                 remove_bos_eos=True):
         """
         Inputs:
         * `esm_model_name`:
@@ -57,9 +61,6 @@ class ESMTransferLearner(nn.Module):
         self.add_residue_features = add_residue_features
         self.add_protein_features = add_protein_features
         self.first_finetune_layer = first_finetune_layer
-        self.protein_embedding_size = constants.model_to_embed_dim[esm_model_name]\
-                                    + sum(add_residue_features.values())\
-                                    + sum(add_protein_features.values())
 
         
         if first_finetune_layer:
@@ -68,10 +69,14 @@ class ESMTransferLearner(nn.Module):
         self.agg_embeddings = ProteinEmbeddingsGenerator(esm_model_name, 
                                                          agg_emb_method,
                                                          n_genes,
-                                                         add_residue_features)
+                                                         add_residue_features,
+                                                         add_protein_features,
+                                                         remove_bos_eos)
+        
+        protein_embedding_size = self.agg_embeddings.protein_embedding_size
         self.predictor = ProteinEmbeddingsPredictor(esm_model_name,
                                                     n_genes,
-                                                    self.protein_embedding_size,
+                                                    protein_embedding_size,
                                                     predict_method,
                                                     predictor_params,
                                                     edge_index)
@@ -92,7 +97,8 @@ class ProteinEmbeddingsGenerator(nn.Module):
                  agg_emb_method,
                  n_genes,
                  add_residue_features,
-                 add_protein_features):
+                 add_protein_features, 
+                 remove_bos_eos):
         '''
         Inputs:
         * `esm_model_name` (str):
@@ -114,14 +120,20 @@ class ProteinEmbeddingsGenerator(nn.Module):
         self.esm_model_name = esm_model_name
         self.agg_emb_method = agg_emb_method
         self.n_genes = n_genes
-        self.add_residue_features = add_residue_features
+        self.remove_bos_eos = remove_bos_eos
         
+        # process feature dimensions
+        self.add_residue_features = {k:v[-1] if len(v)==3 else 1 for k, v in add_residue_features.items()}
+        self.add_protein_features = {k:v[-1] if len(v)==2 else 1 for k, v in add_protein_features.items()}   
+        
+        residue_embed_dim = constants.model_to_embed_dim[esm_model_name] + sum(self.add_residue_features.values())
         if agg_emb_method == "weighted_average":
-            self.weight_logits = [nn.Linear(in_features = constants.model_to_embed_dim[esm_model_name],
-                                          out_features = 1)
-                                  for i in range(n_genes)]
+            self.weight_logits = nn.ModuleList([nn.Linear(in_features = residue_embed_dim,
+                                                          out_features = 1)
+                                  for i in range(n_genes)])
 
             self.softmax = nn.Softmax(dim=1)
+        self.protein_embedding_size = residue_embed_dim + sum(self.add_protein_features.values())
     
     def forward_single_gene(self, embeddings, gene_idx):
         '''
@@ -152,6 +164,8 @@ class ProteinEmbeddingsGenerator(nn.Module):
         '''
         protein_embeddings = {}
         for gene_idx, (gene, embeddings) in enumerate(batch_dict['embeddings'].items()):
+            if self.remove_bos_eos:
+                embeddings = embeddings[:, 1:-1, :]
             for feature in self.add_residue_features.keys():
                 feature_data = batch_dict[feature][gene]
                 
@@ -161,6 +175,7 @@ class ProteinEmbeddingsGenerator(nn.Module):
                 
                 # embeddings.shape = (batch_size, gene_length, emb_size)
                 # feature_data.shape = (batch_size, gene_length, feature_dim)
+                
                 embeddings = torch.cat([embeddings, feature_data], dim = -1)
                 
             protein_emb = self.forward_single_gene(embeddings, gene_idx)
@@ -212,19 +227,22 @@ class ProteinEmbeddingsPredictor(nn.Module):
         
         if predict_method == 'mlp':
             predictor_params['in_dim'] = n_genes * protein_embedding_size
+            predictor_params['out_dim'] = 1
             self.predictor = mlp.MLP(**predictor_params)
         elif predict_method == 'gat':
             predictor_params['in_dim'] = protein_embedding_size
-            self.predictor = mlp.GAT(**predictor_params)
+            predictor_params['n_nodes'] = n_genes
+            self.predictor = gnn.GATv2(**predictor_params)
         elif predict_method == 'gcn':
             predictor_params['in_dim'] = protein_embedding_size
-            self.predictor = mlp.GCN(**predictor_params)
+            predictor_params['n_nodes'] = n_genes
+            self.predictor = gnn.GCN(**predictor_params)
         else:
             raise ValueError("predict_method can be either 'mlp', 'gat', or 'gcn'")
             
     def forward(self, protein_embeddings):
         if self.predict_method == 'mlp':
-            x = torch.cat(list(protein_embeddings.values()))
+            x = torch.cat(list(protein_embeddings.values()), dim=1)
             return self.predictor(x)
         else:
             return self.predictor(protein_embeddings, self.edge_index)
@@ -246,7 +264,7 @@ class FinetuneESM(nn.Module):
         print("Preparing for fine-tuning:")
         for k, v in self.esm.named_parameters():
             if (k=='embed_tokens.weight') or (k.split('.')[1] not in self.finetune_layers):
-                print(f"- Freezing layer {l=k}")
+                print(f"- Freezing layer {k}")
                 v.requires_grad = False
             else:
                 print(f"+ Not freezing layer {k}")

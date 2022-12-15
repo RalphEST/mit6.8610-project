@@ -107,12 +107,10 @@ class VariationDataset(Dataset):
             
             # reading data
             seq_length = None
+            
             for data_t in self.data_types:
-                if data_t == 'embeddings':
-                    self.data[data_t][gene] = torch.load(data_paths[gene][data_t])
-                else:
-                    self.data[data_t][gene] = np.load(data_paths[gene][data_t], 
-                                                   mmap_mode='r+' if self.low_memory else None)
+                self.data[data_t][gene] = np.load(data_paths[gene][data_t], 
+                                                  mmap_mode='r+' if self.low_memory else None)
                 
                 seq_length_dim = -1 if data_t in ['indicators', 'seq-var-matrix'] else 1
                 seq_length = self.data[data_t][gene].shape[seq_length_dim]
@@ -216,7 +214,9 @@ class VariationDataset(Dataset):
                                         axis=0).t().contiguous()
             print("Done")
             
-        
+    def get_feature_dimensions(self, features):
+        return {f:list(self.data[f].values())[0].shape for f in features}
+    
     def filter_variants_by_ac(self, ac_thresh_lo=1, ac_thresh_hi=np.inf):
         self.ac_filter = [self.variants[g]['AC'].between(ac_thresh_lo, ac_thresh_hi, inclusive='both').values 
                           for g in self.gene_names]
@@ -310,12 +310,11 @@ def load_variation_dataset(data_dir,
                            ppi_graph_path=None,
                            embeddings_file=None,
                            hap_collapse_funcs=None,
-                           keep_genes_separate=False,
+                           keep_genes_separate=True,
                            low_memory=True):
     
     if isinstance(gene_list, str):
-        with open(gene_list, 'r') as file:
-            gene_list = list([x.strip() for x in file.readlines()])
+        gene_list = read_gene_list(gene_list)
         
     table_paths = {g:{'variants': os.path.join(data_dir, g, 'variants_table.parquet'), 
                   'sequences': os.path.join(data_dir, g, 'seq_table.parquet'), 
@@ -348,5 +347,17 @@ def batch_dict_to_device(batch_dict, device):
         if torch.is_tensor(v):
             batch_dict[k] = v.to(device).float()
         elif isinstance(v, dict):
-            batch_dict_to_device(v, device).float()
+            batch_dict_to_device(v, device)
+            
+def batch_dict_to_float(batch_dict):
+    for k,v in batch_dict.items():
+        if torch.is_tensor(v):
+            batch_dict[k] = v.float()
+        elif isinstance(v, dict):
+            batch_dict_to_float(v)
+            
+def read_gene_list(file):
+    with open(file, 'r') as file:
+        gene_list = list([x.strip() for x in file.readlines()])
+    return gene_list
         

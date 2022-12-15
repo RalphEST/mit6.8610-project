@@ -175,9 +175,6 @@ class ProteinEmbeddingsPredictor(nn.Module):
             raise NotImplementedError # TODO
             
     def forward(self, protein_embeddings):
-        
-        
-    
 
     
 class FinetuneESM(nn.Module):

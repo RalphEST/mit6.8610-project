@@ -21,18 +21,31 @@ class ESMTransferLearner(nn.Module):
                  predict_method,
                  n_genes,
                  predictor_params,
-                 concatenate_features=[],
-                 edge_index = None,
+                 add_residue_features={},
+                 add_protein_features={},
+                 edge_index=None,
                  first_finetune_layer=None):
         """
         Inputs:
         * `esm_model_name`:
         * `agg_emb_method`:
         * `predict_method`:
+        * `n_genes`:
         * `predict_params` :
-        * `concatenate_features`:
+        * `add_residue_features`:
+            Dictionary of the form `{feature_name: feature_dim}`. Can be obtained from the 
+            `get_feature_dims` method in the `VariationDataset` class. Features will be added to
+            the residue embeddings before aggregation. They must therefore have dimensions 
+            (batch_size, gene_length, feature_dim). If the last dimension is missing (input is a 
+            2-d matrix), an extra third dimension is added automatically.
+        * `add_protein_features`:
+            Dictionary of the form `{feature_name: feature_last_dim}`. Can be obtained from the 
+            `get_feature_dims` method in the `VariationDataset` class. Features will be added to 
+            the protein embeddings.
+        * `edge_index`:
         * `first_finetune_layer`: 
-            first layer to finetune. Indexing starts with 0. Use -1 to finetune only the last layer.
+            First layer to finetune. Indexing starts with 0. Like with a list, use `-X` 
+            to finetune only the last `X` layers.
         """
         super(ESMTransferLearner, self).__init__() 
         
@@ -41,8 +54,13 @@ class ESMTransferLearner(nn.Module):
         self.predictor_params = predictor_params
         self.esm_model_name = esm_model_name
         self.n_genes = n_genes
-        predictor_params['n_genes'] = n_genes
+        self.add_residue_features = add_residue_features
+        self.add_protein_features = add_protein_features
         self.first_finetune_layer = first_finetune_layer
+        self.protein_embedding_size = constants.model_to_embed_dim[esm_model_name]\
+                                    + sum(add_residue_features.values())\
+                                    + sum(add_protein_features.values())
+
         
         if first_finetune_layer:
             self.finetune_esm = FinetuneESM(esm_model_name, first_finetune_layer)
@@ -50,8 +68,10 @@ class ESMTransferLearner(nn.Module):
         self.agg_embeddings = ProteinEmbeddingsGenerator(esm_model_name, 
                                                          agg_emb_method,
                                                          n_genes,
-                                                         concatenate_features)
+                                                         add_residue_features)
         self.predictor = ProteinEmbeddingsPredictor(esm_model_name,
+                                                    n_genes,
+                                                    self.protein_embedding_size,
                                                     predict_method,
                                                     predictor_params,
                                                     edge_index)
@@ -69,8 +89,10 @@ class ESMTransferLearner(nn.Module):
 class ProteinEmbeddingsGenerator(nn.Module):
     def __init__(self, 
                  esm_model_name, 
-                 agg_emb_method, 
-                 concatenate_features):
+                 agg_emb_method,
+                 n_genes,
+                 add_residue_features,
+                 add_protein_features):
         '''
         Inputs:
         * `esm_model_name` (str):
@@ -82,16 +104,17 @@ class ProteinEmbeddingsGenerator(nn.Module):
                 - 'weighted_average':
                     A simple attention-like mechanism in which one weight is computed per embedding using
                     a linear layer followed by a softmax.
-        * `concatenate_features` (list[str,...]):
-            List of other data in the batch dictionary which can be concatenated to the embeddings before
-            they are aggregated. Concatenation happens along the last dimension of the embeddings.
+        * `add_residue_features` (dict):
+            Dictionary of the form `{feature_name: feature_last_dim}`. Can be obtained from the 
+            `get_feature_dims` method in the `VariationDataset` class.
         
         '''
         super(ProteinEmbeddingsGenerator, self).__init__()
         
         self.esm_model_name = esm_model_name
         self.agg_emb_method = agg_emb_method
-        self.concatenate_features = concatenate_features
+        self.n_genes = n_genes
+        self.add_residue_features = add_residue_features
         
         if agg_emb_method == "weighted_average":
             self.weight_logits = [nn.Linear(in_features = constants.model_to_embed_dim[esm_model_name],
@@ -121,7 +144,7 @@ class ProteinEmbeddingsGenerator(nn.Module):
         Inputs:
         * `batch_dict`: 
             Two-level dictionary with at least 'embeddings' and the 
-            features in `concatenate_features` as first-level keys. 
+            features in `add_residue_features` as first-level keys. 
             Second-level keys are the genes of interest.
         Returns:
         * A dictionary with genes as keys and protein-level embeddings as values. 
@@ -129,20 +152,39 @@ class ProteinEmbeddingsGenerator(nn.Module):
         '''
         protein_embeddings = {}
         for gene_idx, (gene, embeddings) in enumerate(batch_dict['embeddings'].items()):
-            for feature in self.concatenate_features:
-                feature_tensor = batch_dict[feature][gene]
+            for feature in self.add_residue_features.keys():
+                feature_data = batch_dict[feature][gene]
                 
                 # make sure the feature tensor is 3-dimensional
-                if len(feature_tensor.shape) == 2:
-                    feature_tensor = feature_tensor.unsqueeze(-1)
-                    
-                embeddings = torch.cat([embeddings, feature_tensor], dim = -1)
-            protein_embeddings[gene] = self.forward_single_gene(embeddings, gene_idx)
+                if len(feature_data.shape) == 2:
+                    feature_data = feature_data.unsqueeze(-1)
+                
+                # embeddings.shape = (batch_size, gene_length, emb_size)
+                # feature_data.shape = (batch_size, gene_length, feature_dim)
+                embeddings = torch.cat([embeddings, feature_data], dim = -1)
+                
+            protein_emb = self.forward_single_gene(embeddings, gene_idx)
+            
+            for feature in self.add_protein_features.keys():
+                feature_data = batch_dict[feature][gene]
+                
+                # make sure the feature tensor is 2-dimensional
+                if len(feature_data.shape) == 1:
+                    feature_data = feature_data.unsqueeze(-1)
+                
+                # protein_emb.shape = (batch_size, emb_size)
+                # feature_data.shape = (batch_size, feature_dim)
+                protein_emb = torch.cat([protein_emb, feature_data], dim = -1)
+                
+            protein_embeddings[gene] = protein_emb
+            
         return protein_embeddings
     
 class ProteinEmbeddingsPredictor(nn.Module):
     def __init__(self,
                  esm_model_name,
+                 n_genes,
+                 protein_embedding_size,
                  predict_method,
                  predictor_params,
                  edge_index):
@@ -157,41 +199,68 @@ class ProteinEmbeddingsPredictor(nn.Module):
                     concatenate protein embeddings and classify using a graph-attention network
                 - 'gcn':
                     concatenate protein embeddings and classify using a graph-convolutional network.
-                    NOT IMPLEMENTED YET.
         * `edge_index` (pytorch tensor)
         '''
         super(ProteinEmbeddingsPredictor, self).__init__()
         
         self.esm_model_name = esm_model_name
+        self.n_genes = n_genes
+        self.protein_embedding_size = protein_embedding_size
         self.predict_method = predict_method
         self.predict_params = predictor_params
         self.edge_index = edge_index
         
         if predict_method == 'mlp':
-            self.predictor = mlp.MLP(predictor_params)
+            predictor_params['in_dim'] = n_genes * protein_embedding_size
+            self.predictor = mlp.MLP(**predictor_params)
         elif predict_method == 'gat':
-            self.predictor = mlp.GAT(predictor_params)
+            predictor_params['in_dim'] = protein_embedding_size
+            self.predictor = mlp.GAT(**predictor_params)
         elif predict_method == 'gcn':
-            raise NotImplementedError # TODO
+            predictor_params['in_dim'] = protein_embedding_size
+            self.predictor = mlp.GCN(**predictor_params)
+        else:
+            raise ValueError("predict_method can be either 'mlp', 'gat', or 'gcn'")
             
     def forward(self, protein_embeddings):
+        if self.predict_method == 'mlp':
+            x = torch.cat(list(protein_embeddings.values()))
+            return self.predictor(x)
+        else:
+            return self.predictor(protein_embeddings, self.edge_index)
 
     
 class FinetuneESM(nn.Module):
-    def __init__(self, esm_model, first_finetune_layer):
+    def __init__(self, 
+                 esm_model_name, 
+                 first_finetune_layer):
+        super().__init__()
         
-         # handle fine-tuning
-        self.esm, self.alphabet = pretrained.load_model_and_alphabet_hub(esm_model)
+        # handle fine-tuning
+        self.esm, self.alphabet = pretrained.load_model_and_alphabet_hub(esm_model_name)
+        self.num_layers = self.esm.num_layers
+        self.first_finetune_layer = first_finetune_layer
         
-        if first_finetune_layer != -1 and first_finetune_layer != 0:
-            finetune_layers = set(range(first_finetune_layer-1, len(self.esm_embed.layers)))
-        elif first_finetune_layer == 0:
-            finetune_layers = set(range(len(self.esm_embed.layers)))
-        for k, v in self.esm_embed.named_parameters():
-            if first_finetune_layer == -1:
+        self.finetune_layers = [str(layer) for layer in np.arange(self.num_layers)[first_finetune_layer:]]
+        
+        print("Preparing for fine-tuning:")
+        for k, v in self.esm.named_parameters():
+            if (k=='embed_tokens.weight') or (k.split('.')[1] not in self.finetune_layers):
+                print(f"- Freezing layer {l=k}")
                 v.requires_grad = False
-            elif k.split('.')[1] in finetune_layers:
-                v.requires_grad = False
-            elif first_finetune_layer != 0 and 'embed' in k:
-                v.requires_grad = False
+            else:
+                print(f"+ Not freezing layer {k}")
+
+    def forward(self, batch_dict):
+        '''
+        Inputs:
+        * `batch_dict`: of the form {'esm-tokens': {gene_name: tensor of shape (batch_size, gene_length + 2)}}
+        Returns:
+        * {gene_name:  tensor of shape (batch_size, gene_length + 2, vocab_size)}
+        '''
+        residue_embeddings = {}
+        for gene, toks in batch_dict['esm-tokens'].items():
+            results = self.esm_embed(toks, repr_layers=[self.num_layers])
+            residue_embeddings[gene] = results["representations"][self.num_layers]
+        return residue_embeddings 
  

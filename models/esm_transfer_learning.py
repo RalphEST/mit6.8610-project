@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from esm import pretrained
+import numpy as np
 
 # custom
 PROJECT_PATH = '/n/groups/marks/databases/ukbiobank/users/ralphest/mit6.8610-project'
@@ -278,7 +279,7 @@ class FinetuneESM(nn.Module):
         '''
         residue_embeddings = {}
         for gene, toks in batch_dict['esm-tokens'].items():
-            results = self.esm_embed(toks, repr_layers=[self.num_layers])
+            results = self.esm(toks, repr_layers=[self.num_layers])
             residue_embeddings[gene] = results["representations"][self.num_layers]
         return residue_embeddings 
  

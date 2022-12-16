@@ -225,7 +225,8 @@ class VariationDataset(Dataset):
         if isinstance(balance_on, str):
             self.samples_train, self.samples_test = train_test_split(self.sample_names,
                                                                      train_size=train_fraction,
-                                                                     stratify=self.patients[balance_on])
+                                                                     stratify=self.patients[balance_on],
+                                                                     random_state=42)
         elif isinstance(balance_on, list):
             self.patients['balance_on'] = self.patients[balance_on].astype(str)\
                                                 .apply(lambda r: ''.join(r), axis = 1)
@@ -235,11 +236,13 @@ class VariationDataset(Dataset):
             
             self.samples_train, self.samples_test = train_test_split(self.patients.drop(isolated_samples).index.to_list(),
                                                                      train_size=train_fraction,
-                                                                     stratify=self.patients.drop(isolated_samples)[balance_on])
+                                                                     stratify=self.patients.drop(isolated_samples)[balance_on],
+                                                                     random_state=42)
             self.samples_train += isolated_samples
         else:
             self.samples_train, self.samples_test = train_test_split(self.sample_names,
-                                                                     train_size=train_fraction)
+                                                                     train_size=train_fraction,
+                                                                     random_state=42)
             
         return (VariationDatasetSplit(self, train=True), 
                 VariationDatasetSplit(self, train=False))

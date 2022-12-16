@@ -279,7 +279,7 @@ class FinetuneESM(nn.Module):
         '''
         residue_embeddings = {}
         for gene, toks in batch_dict['esm-tokens'].items():
-            results = self.esm(toks, repr_layers=[self.num_layers])
+            results = self.esm(toks.int(), repr_layers=[self.num_layers])
             residue_embeddings[gene] = results["representations"][self.num_layers]
         return residue_embeddings 
  

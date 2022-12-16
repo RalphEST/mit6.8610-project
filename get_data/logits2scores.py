@@ -4,13 +4,20 @@ From [batch_size, seq_len, vocab_size] to [batch_size, 2], where the 2 represent
 import torch
 
 
-def marginal_score(mutation_indicators: torch.BoolTensor, wt_tokens: torch.LongTensor, mt_tokens: torch.LongTensor, logits: torch.FloatTensor):
-    wt_var_toks = torch.split(wt_tokens[mutation_indicators], mutation_indicators.sum(dim=1).tolist(), dim=0)
-    mt_var_toks = torch.split(mt_tokens[mutation_indicators], mutation_indicators.sum(dim=1).tolist(), dim=0)
+def marginal_score(mutation_indicators: torch.BoolTensor, 
+                   wt_tokens: torch.LongTensor, 
+                   mt_tokens: torch.LongTensor, 
+                   logits: torch.FloatTensor):
+    
+    wt_var_toks = torch.split(wt_tokens[mutation_indicators], 
+                              mutation_indicators.sum(dim=1).tolist(), dim=0)
+    mt_var_toks = torch.split(mt_tokens[mutation_indicators],
+                              mutation_indicators.sum(dim=1).tolist(), dim=0)
     
     scores = []
-    for i, individual_logits in enumerate(torch.split(logits[mutation_indicators.bool()], mutation_indicators.bool().sum(dim=1).tolist())):
-        print((individual_logits[torch.arange(mt_var_toks[i].shape[0]), mt_var_toks[i]] - individual_logits[torch.arange(wt_var_toks[i].shape[0]), wt_var_toks[i]]))  # NOTE: Just for testing
+    for i, individual_logits in enumerate(torch.split(logits[mutation_indicators.bool()], 
+                                                      mutation_indicators.bool().sum(dim=1).tolist())):
+        # print((individual_logits[torch.arange(mt_var_toks[i].shape[0]), mt_var_toks[i]] - individual_logits[torch.arange(wt_var_toks[i].shape[0]), wt_var_toks[i]]))  # NOTE: Just for testing
         score = (individual_logits[torch.arange(mt_var_toks[i].shape[0]), mt_var_toks[i]] - individual_logits[torch.arange(wt_var_toks[i].shape[0]), wt_var_toks[i]]).sum()  # The only difference in mt- and wt- marginal is whether the context (i.e. the logits) is mt or wt
         scores.append(score)
     

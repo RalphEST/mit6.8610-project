@@ -14,7 +14,8 @@ from sklearn.model_selection import train_test_split
 default_hap_collapse_funcs = {'one-hot-encodings': lambda x: np.sum(x, axis=0), 
                               'embeddings': lambda x: x[0], 
                               'indicators': lambda x: np.sum(x, axis=0),
-                              'esm-tokens': lambda x: x[0]}
+                              'esm-tokens': lambda x: x[0],
+                              'esm-scores': lambda x: np.sum(x, axis=0)}
 
 class VariationDataset(Dataset):
     """
@@ -328,7 +329,8 @@ def load_variation_dataset(data_dir,
         "indicators": 'hap_indicator.npy',
         "seq-var-matrix": 'seq_var_matrix.npy',
         "embeddings": embeddings_file,
-        "esm-tokens": "hap_esm_tokens.npy"
+        "esm-tokens": "esm2s_tokens.npy",
+        "esm-scores": "combined_esm_scores.npy"
     }
     data_paths = {g:{dt:os.path.join(data_dir, g, data_type_2_file_name[dt]) 
                      for dt in data_types} 

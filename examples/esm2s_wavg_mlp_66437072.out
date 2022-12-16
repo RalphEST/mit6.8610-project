@@ -1,0 +1,513 @@
+Fetching FHL1 data ... Done
+Fetching ACTC1 data ... Done
+Fetching ACTN2 data ... Done
+Fetching CSRP3 data ... Done
+Fetching MYBPC3 data ... Done
+Fetching MYH6 data ... Done
+Fetching MYH7 data ... Done
+Fetching MYL2 data ... Done
+Fetching MYL3 data ... Done
+Fetching MYOZ2 data ... Done
+Fetching LDB3 data ... Done
+Fetching TCAP data ... Done
+Fetching TNNC1 data ... Done
+Fetching TNNI3 data ... Done
+Fetching TNNT2 data ... Done
+Fetching TPM1 data ... Done
+Fetching TRIM63 data ... Done
+Fetching PLN data ... Done
+Fetching JPH2 data ... Done
+Fetching FLNC data ... Done
+Fetching ALPK3 data ... Done
+Fetching LMNA data ... Done
+Fetching NEXN data ... Done
+Fetching VCL data ... Done
+Fetching MYOM2 data ... Done
+Fetching CASQ2 data ... Done
+Fetching CAV3 data ... Done
+Fetching MYLK2 data ... Done
+Fetching CRYAB data ... Done
+Combining tables ... Done
+Integrating with phenotypes data ...Done
+Processing PPI graph ...Done
+Epoch #0:
+	Batch 0 | BCE Loss: 0.6933
+	Batch 10 | BCE Loss: 0.6928
+	Batch 20 | BCE Loss: 0.6947
+	Batch 30 | BCE Loss: 0.6957
+	Batch 40 | BCE Loss: 0.6936
+	Batch 50 | BCE Loss: 0.6925
+	Batch 60 | BCE Loss: 0.6940
+	Batch 70 | BCE Loss: 0.6939
+	Batch 80 | BCE Loss: 0.6938
+	Batch 90 | BCE Loss: 0.6943
+	Batch 100 | BCE Loss: 0.6929
+	Batch 110 | BCE Loss: 0.6933
+	Batch 120 | BCE Loss: 0.6930
+	Batch 130 | BCE Loss: 0.6932
+	Batch 140 | BCE Loss: 0.6943
+	Batch 150 | BCE Loss: 0.6927
+	Batch 160 | BCE Loss: 0.6941
+	Batch 170 | BCE Loss: 0.6927
+	Batch 180 | BCE Loss: 0.6934
+	Batch 190 | BCE Loss: 0.6919
+	Batch 200 | BCE Loss: 0.6946
+	Batch 210 | BCE Loss: 0.6924
+	Batch 220 | BCE Loss: 0.6950
+	Batch 230 | BCE Loss: 0.6932
+	Batch 240 | BCE Loss: 0.6943
+	Batch 250 | BCE Loss: 0.6926
+	Batch 260 | BCE Loss: 0.6935
+	Batch 270 | BCE Loss: 0.6923
+	Batch 280 | BCE Loss: 0.6944
+	Batch 290 | BCE Loss: 0.6934
+	Batch 300 | BCE Loss: 0.6936
+	Batch 310 | BCE Loss: 0.6933
+	Batch 320 | BCE Loss: 0.6935
+	Batch 330 | BCE Loss: 0.6917
+	Batch 340 | BCE Loss: 0.6940
+	Batch 350 | BCE Loss: 0.6944
+	Batch 360 | BCE Loss: 0.6915
+	Batch 370 | BCE Loss: 0.6920
+	Batch 380 | BCE Loss: 0.6925
+	Batch 390 | BCE Loss: 0.6943
+	Batch 400 | BCE Loss: 0.6912
+	Batch 410 | BCE Loss: 0.6932
+	Batch 420 | BCE Loss: 0.6941
+	Batch 430 | BCE Loss: 0.6916
+	Batch 440 | BCE Loss: 0.6933
+	Batch 450 | BCE Loss: 0.6937
+	Batch 460 | BCE Loss: 0.6923
+	Batch 470 | BCE Loss: 0.6920
+	Batch 480 | BCE Loss: 0.6928
+	Batch 490 | BCE Loss: 0.6947
+	Batch 500 | BCE Loss: 0.6926
+	Batch 510 | BCE Loss: 0.6929
+	Batch 520 | BCE Loss: 0.6943
+	Batch 530 | BCE Loss: 0.6942
+	Batch 540 | BCE Loss: 0.6932
+	Batch 550 | BCE Loss: 0.6938
+	Batch 560 | BCE Loss: 0.6932
+	Batch 570 | BCE Loss: 0.6922
+	Batch 580 | BCE Loss: 0.6927
+	Batch 590 | BCE Loss: 0.6938
+	Batch 600 | BCE Loss: 0.6928
+	Batch 610 | BCE Loss: 0.6925
+	Batch 620 | BCE Loss: 0.6923
+	Batch 630 | BCE Loss: 0.6931
+	Batch 640 | BCE Loss: 0.6928
+	Batch 650 | BCE Loss: 0.6931
+	Batch 660 | BCE Loss: 0.6937
+	Batch 670 | BCE Loss: 0.6932
+	Batch 680 | BCE Loss: 0.6925
+	Batch 690 | BCE Loss: 0.6926
+	Batch 700 | BCE Loss: 0.6928
+	Batch 710 | BCE Loss: 0.6935
+	Batch 720 | BCE Loss: 0.6931
+	Batch 730 | BCE Loss: 0.6933
+	Batch 740 | BCE Loss: 0.6933
+	Batch 750 | BCE Loss: 0.6929
+	Batch 760 | BCE Loss: 0.6935
+	Batch 770 | BCE Loss: 0.6933
+	Batch 780 | BCE Loss: 0.6929
+	Batch 790 | BCE Loss: 0.6937
+	Batch 800 | BCE Loss: 0.6931
+	Batch 810 | BCE Loss: 0.6938
+	Batch 820 | BCE Loss: 0.6935
+	Batch 830 | BCE Loss: 0.6936
+	Batch 840 | BCE Loss: 0.6940
+	Batch 850 | BCE Loss: 0.6931
+	Batch 860 | BCE Loss: 0.6945
+	Batch 870 | BCE Loss: 0.6928
+	Batch 880 | BCE Loss: 0.6930
+	Batch 890 | BCE Loss: 0.6932
+	Batch 900 | BCE Loss: 0.6932
+	Batch 910 | BCE Loss: 0.6933
+	Batch 920 | BCE Loss: 0.6932
+	Batch 930 | BCE Loss: 0.6931
+	Batch 940 | BCE Loss: 0.6931
+	Batch 950 | BCE Loss: 0.6931
+	Batch 960 | BCE Loss: 0.6931
+	Batch 970 | BCE Loss: 0.6930
+	Batch 980 | BCE Loss: 0.6933
+	Batch 990 | BCE Loss: 0.6930
+	Batch 1000 | BCE Loss: 0.6931
+	Batch 1010 | BCE Loss: 0.6931
+	Batch 1020 | BCE Loss: 0.6931
+	Batch 1030 | BCE Loss: 0.6931
+	Batch 1040 | BCE Loss: 0.6936
+	Batch 1050 | BCE Loss: 0.6932
+	Batch 1060 | BCE Loss: 0.6932
+	Batch 1070 | BCE Loss: 0.6929
+	Batch 1080 | BCE Loss: 0.6926
+	Batch 1090 | BCE Loss: 0.6922
+	Batch 1100 | BCE Loss: 0.6941
+	Batch 1110 | BCE Loss: 0.6929
+	Batch 1120 | BCE Loss: 0.6932
+	Batch 1130 | BCE Loss: 0.6932
+	Batch 1140 | BCE Loss: 0.6931
+	Batch 1150 | BCE Loss: 0.6930
+	Batch 1160 | BCE Loss: 0.6932
+	Batch 1170 | BCE Loss: 0.6926
+	Batch 1180 | BCE Loss: 0.6932
+	Batch 1190 | BCE Loss: 0.6928
+	Batch 1200 | BCE Loss: 0.6929
+	Batch 1210 | BCE Loss: 0.6935
+	Batch 1220 | BCE Loss: 0.6933
+	Batch 1230 | BCE Loss: 0.6931
+	Batch 1240 | BCE Loss: 0.6931
+	Batch 1250 | BCE Loss: 0.6931
+	Batch 1260 | BCE Loss: 0.6932
+	Batch 1270 | BCE Loss: 0.6932
+	Batch 1280 | BCE Loss: 0.6932
+	Batch 1290 | BCE Loss: 0.6932
+	Batch 1300 | BCE Loss: 0.6932
+	Batch 1310 | BCE Loss: 0.6932
+	Batch 1320 | BCE Loss: 0.6935
+	Batch 1330 | BCE Loss: 0.6932
+	Batch 1340 | BCE Loss: 0.6932
+	Batch 1350 | BCE Loss: 0.6933
+	Batch 1360 | BCE Loss: 0.6931
+	Batch 1370 | BCE Loss: 0.6932
+	Batch 1380 | BCE Loss: 0.6931
+	Batch 1390 | BCE Loss: 0.6932
+	Batch 1400 | BCE Loss: 0.6932
+	Batch 1410 | BCE Loss: 0.6932
+	Batch 1420 | BCE Loss: 0.6930
+	Batch 1430 | BCE Loss: 0.6930
+	Batch 1440 | BCE Loss: 0.6931
+	Batch 1450 | BCE Loss: 0.6927
+	Batch 1460 | BCE Loss: 0.6932
+	Batch 1470 | BCE Loss: 0.6932
+	Batch 1480 | BCE Loss: 0.6930
+	Batch 1490 | BCE Loss: 0.6927
+	Batch 1500 | BCE Loss: 0.6924
+	Batch 1510 | BCE Loss: 0.6933
+	Batch 1520 | BCE Loss: 0.6931
+	Batch 1530 | BCE Loss: 0.6942
+	Batch 1540 | BCE Loss: 0.6922
+Train metrics:
+	accuracy: 0.502
+	precision: 0.501
+	recall: 0.567
+	f1: 0.532
+	AUROC: 0.501
+	AUPRC: 0.500
+	loss: 1073.101
+Test metrics:
+	accuracy: 0.996
+	precision: 0.000
+	recall: 0.000
+	f1: 0.000
+	AUROC: 0.490
+	AUPRC: 0.004
+	loss: 263.345
+Epoch #1:
+	Batch 0 | BCE Loss: 0.6930
+	Batch 10 | BCE Loss: 0.6919
+	Batch 20 | BCE Loss: 0.6924
+	Batch 30 | BCE Loss: 0.6934
+	Batch 40 | BCE Loss: 0.6909
+	Batch 50 | BCE Loss: 0.6938
+	Batch 60 | BCE Loss: 0.6920
+	Batch 70 | BCE Loss: 0.6936
+	Batch 80 | BCE Loss: 0.6929
+	Batch 90 | BCE Loss: 0.6927
+	Batch 100 | BCE Loss: 0.6929
+	Batch 110 | BCE Loss: 0.6933
+	Batch 120 | BCE Loss: 0.6926
+	Batch 130 | BCE Loss: 0.6932
+	Batch 140 | BCE Loss: 0.6936
+	Batch 150 | BCE Loss: 0.6930
+	Batch 160 | BCE Loss: 0.6931
+	Batch 170 | BCE Loss: 0.6928
+	Batch 180 | BCE Loss: 0.6934
+	Batch 190 | BCE Loss: 0.6938
+	Batch 200 | BCE Loss: 0.6932
+	Batch 210 | BCE Loss: 0.6929
+	Batch 220 | BCE Loss: 0.6924
+	Batch 230 | BCE Loss: 0.6929
+	Batch 240 | BCE Loss: 0.6923
+	Batch 250 | BCE Loss: 0.6940
+	Batch 260 | BCE Loss: 0.6934
+	Batch 270 | BCE Loss: 0.6941
+	Batch 280 | BCE Loss: 0.6936
+	Batch 290 | BCE Loss: 0.6929
+	Batch 300 | BCE Loss: 0.6919
+	Batch 310 | BCE Loss: 0.6930
+	Batch 320 | BCE Loss: 0.6932
+	Batch 330 | BCE Loss: 0.6931
+	Batch 340 | BCE Loss: 0.6932
+	Batch 350 | BCE Loss: 0.6930
+	Batch 360 | BCE Loss: 0.6935
+	Batch 370 | BCE Loss: 0.6933
+	Batch 380 | BCE Loss: 0.6931
+	Batch 390 | BCE Loss: 0.6931
+	Batch 400 | BCE Loss: 0.6931
+	Batch 410 | BCE Loss: 0.6933
+	Batch 420 | BCE Loss: 0.6928
+	Batch 430 | BCE Loss: 0.6932
+	Batch 440 | BCE Loss: 0.6929
+	Batch 450 | BCE Loss: 0.6930
+	Batch 460 | BCE Loss: 0.6932
+	Batch 470 | BCE Loss: 0.6933
+	Batch 480 | BCE Loss: 0.6931
+	Batch 490 | BCE Loss: 0.6927
+	Batch 500 | BCE Loss: 0.6932
+	Batch 510 | BCE Loss: 0.6938
+	Batch 520 | BCE Loss: 0.6933
+	Batch 530 | BCE Loss: 0.6933
+	Batch 540 | BCE Loss: 0.6931
+	Batch 550 | BCE Loss: 0.6931
+	Batch 560 | BCE Loss: 0.6932
+	Batch 570 | BCE Loss: 0.6931
+	Batch 580 | BCE Loss: 0.6934
+	Batch 590 | BCE Loss: 0.6928
+	Batch 600 | BCE Loss: 0.6932
+	Batch 610 | BCE Loss: 0.6933
+	Batch 620 | BCE Loss: 0.6931
+	Batch 630 | BCE Loss: 0.6932
+	Batch 640 | BCE Loss: 0.6931
+	Batch 650 | BCE Loss: 0.6933
+	Batch 660 | BCE Loss: 0.6929
+	Batch 670 | BCE Loss: 0.6932
+	Batch 680 | BCE Loss: 0.6932
+	Batch 690 | BCE Loss: 0.6933
+	Batch 700 | BCE Loss: 0.6925
+	Batch 710 | BCE Loss: 0.6931
+	Batch 720 | BCE Loss: 0.6933
+	Batch 730 | BCE Loss: 0.6933
+	Batch 740 | BCE Loss: 0.6932
+	Batch 750 | BCE Loss: 0.6932
+	Batch 760 | BCE Loss: 0.6931
+	Batch 770 | BCE Loss: 0.6933
+	Batch 780 | BCE Loss: 0.6931
+	Batch 790 | BCE Loss: 0.6932
+	Batch 800 | BCE Loss: 0.6928
+	Batch 810 | BCE Loss: 0.6927
+	Batch 820 | BCE Loss: 0.6933
+	Batch 830 | BCE Loss: 0.6932
+	Batch 840 | BCE Loss: 0.6936
+	Batch 850 | BCE Loss: 0.6931
+	Batch 860 | BCE Loss: 0.6945
+	Batch 870 | BCE Loss: 0.6925
+	Batch 880 | BCE Loss: 0.6946
+	Batch 890 | BCE Loss: 0.6930
+	Batch 900 | BCE Loss: 0.6932
+	Batch 910 | BCE Loss: 0.6935
+	Batch 920 | BCE Loss: 0.6934
+	Batch 930 | BCE Loss: 0.6931
+	Batch 940 | BCE Loss: 0.6934
+	Batch 950 | BCE Loss: 0.6932
+	Batch 960 | BCE Loss: 0.6938
+	Batch 970 | BCE Loss: 0.6930
+	Batch 980 | BCE Loss: 0.6935
+	Batch 990 | BCE Loss: 0.6931
+	Batch 1000 | BCE Loss: 0.6927
+	Batch 1010 | BCE Loss: 0.6923
+	Batch 1020 | BCE Loss: 0.6941
+	Batch 1030 | BCE Loss: 0.6932
+	Batch 1040 | BCE Loss: 0.6927
+	Batch 1050 | BCE Loss: 0.6929
+	Batch 1060 | BCE Loss: 0.6927
+	Batch 1070 | BCE Loss: 0.6932
+	Batch 1080 | BCE Loss: 0.6936
+	Batch 1090 | BCE Loss: 0.6931
+	Batch 1100 | BCE Loss: 0.6928
+	Batch 1110 | BCE Loss: 0.6928
+	Batch 1120 | BCE Loss: 0.6933
+	Batch 1130 | BCE Loss: 0.6933
+	Batch 1140 | BCE Loss: 0.6932
+	Batch 1150 | BCE Loss: 0.6932
+	Batch 1160 | BCE Loss: 0.6931
+	Batch 1170 | BCE Loss: 0.6932
+	Batch 1180 | BCE Loss: 0.6931
+	Batch 1190 | BCE Loss: 0.6932
+	Batch 1200 | BCE Loss: 0.6929
+	Batch 1210 | BCE Loss: 0.6935
+	Batch 1220 | BCE Loss: 0.6930
+	Batch 1230 | BCE Loss: 0.6933
+	Batch 1240 | BCE Loss: 0.6932
+	Batch 1250 | BCE Loss: 0.6933
+	Batch 1260 | BCE Loss: 0.6933
+	Batch 1270 | BCE Loss: 0.6931
+	Batch 1280 | BCE Loss: 0.6930
+	Batch 1290 | BCE Loss: 0.6930
+	Batch 1300 | BCE Loss: 0.6932
+	Batch 1310 | BCE Loss: 0.6930
+	Batch 1320 | BCE Loss: 0.6935
+	Batch 1330 | BCE Loss: 0.6929
+	Batch 1340 | BCE Loss: 0.6927
+	Batch 1350 | BCE Loss: 0.6930
+	Batch 1360 | BCE Loss: 0.6934
+	Batch 1370 | BCE Loss: 0.6922
+	Batch 1380 | BCE Loss: 0.6929
+	Batch 1390 | BCE Loss: 0.6922
+	Batch 1400 | BCE Loss: 0.6924
+	Batch 1410 | BCE Loss: 0.6928
+	Batch 1420 | BCE Loss: 0.6940
+	Batch 1430 | BCE Loss: 0.6928
+	Batch 1440 | BCE Loss: 0.6930
+	Batch 1450 | BCE Loss: 0.6929
+	Batch 1460 | BCE Loss: 0.6931
+	Batch 1470 | BCE Loss: 0.6928
+	Batch 1480 | BCE Loss: 0.6929
+	Batch 1490 | BCE Loss: 0.6932
+	Batch 1500 | BCE Loss: 0.6933
+	Batch 1510 | BCE Loss: 0.6931
+	Batch 1520 | BCE Loss: 0.6931
+	Batch 1530 | BCE Loss: 0.6932
+	Batch 1540 | BCE Loss: 0.6931
+Train metrics:
+	accuracy: 0.500
+	precision: 0.501
+	recall: 0.534
+	f1: 0.517
+	AUROC: 0.499
+	AUPRC: 0.499
+	loss: 1070.252
+Test metrics:
+	accuracy: 0.004
+	precision: 0.004
+	recall: 1.000
+	f1: 0.009
+	AUROC: 0.520
+	AUPRC: 0.005
+	loss: 267.673
+Epoch #2:
+	Batch 0 | BCE Loss: 0.6931
+	Batch 10 | BCE Loss: 0.6931
+	Batch 20 | BCE Loss: 0.6933
+	Batch 30 | BCE Loss: 0.6931
+	Batch 40 | BCE Loss: 0.6934
+	Batch 50 | BCE Loss: 0.6934
+	Batch 60 | BCE Loss: 0.6933
+	Batch 70 | BCE Loss: 0.6932
+	Batch 80 | BCE Loss: 0.6932
+	Batch 90 | BCE Loss: 0.6932
+	Batch 100 | BCE Loss: 0.6931
+	Batch 110 | BCE Loss: 0.6931
+	Batch 120 | BCE Loss: 0.6931
+	Batch 130 | BCE Loss: 0.6931
+	Batch 140 | BCE Loss: 0.6932
+	Batch 150 | BCE Loss: 0.6933
+	Batch 160 | BCE Loss: 0.6930
+	Batch 170 | BCE Loss: 0.6933
+	Batch 180 | BCE Loss: 0.6935
+	Batch 190 | BCE Loss: 0.6931
+	Batch 200 | BCE Loss: 0.6930
+	Batch 210 | BCE Loss: 0.6929
+	Batch 220 | BCE Loss: 0.6934
+	Batch 230 | BCE Loss: 0.6933
+	Batch 240 | BCE Loss: 0.6934
+	Batch 250 | BCE Loss: 0.6935
+	Batch 260 | BCE Loss: 0.6922
+	Batch 270 | BCE Loss: 0.6917
+	Batch 280 | BCE Loss: 0.6940
+	Batch 290 | BCE Loss: 0.6922
+	Batch 300 | BCE Loss: 0.6947
+	Batch 310 | BCE Loss: 0.6929
+	Batch 320 | BCE Loss: 0.6945
+	Batch 330 | BCE Loss: 0.6937
+	Batch 340 | BCE Loss: 0.6921
+	Batch 350 | BCE Loss: 0.6919
+	Batch 360 | BCE Loss: 0.6938
+	Batch 370 | BCE Loss: 0.6933
+	Batch 380 | BCE Loss: 0.6943
+	Batch 390 | BCE Loss: 0.6928
+	Batch 400 | BCE Loss: 0.6920
+	Batch 410 | BCE Loss: 0.6943
+	Batch 420 | BCE Loss: 0.6941
+	Batch 430 | BCE Loss: 0.6932
+	Batch 440 | BCE Loss: 0.6931
+	Batch 450 | BCE Loss: 0.6937
+	Batch 460 | BCE Loss: 0.6928
+	Batch 470 | BCE Loss: 0.6932
+	Batch 480 | BCE Loss: 0.6933
+	Batch 490 | BCE Loss: 0.6932
+	Batch 500 | BCE Loss: 0.6934
+	Batch 510 | BCE Loss: 0.6933
+	Batch 520 | BCE Loss: 0.6928
+	Batch 530 | BCE Loss: 0.6933
+	Batch 540 | BCE Loss: 0.6934
+	Batch 550 | BCE Loss: 0.6937
+	Batch 560 | BCE Loss: 0.6932
+	Batch 570 | BCE Loss: 0.6935
+	Batch 580 | BCE Loss: 0.6930
+	Batch 590 | BCE Loss: 0.6930
+	Batch 600 | BCE Loss: 0.6930
+	Batch 610 | BCE Loss: 0.6932
+	Batch 620 | BCE Loss: 0.6934
+	Batch 630 | BCE Loss: 0.6936
+	Batch 640 | BCE Loss: 0.6927
+	Batch 650 | BCE Loss: 0.6928
+	Batch 660 | BCE Loss: 0.6932
+	Batch 670 | BCE Loss: 0.6928
+	Batch 680 | BCE Loss: 0.6939
+	Batch 690 | BCE Loss: 0.6932
+	Batch 700 | BCE Loss: 0.6931
+	Batch 710 | BCE Loss: 0.6931
+	Batch 720 | BCE Loss: 0.6930
+	Batch 730 | BCE Loss: 0.6932
+	Batch 740 | BCE Loss: 0.6931
+	Batch 750 | BCE Loss: 0.6930
+	Batch 760 | BCE Loss: 0.6928
+	Batch 770 | BCE Loss: 0.6929
+	Batch 780 | BCE Loss: 0.6931
+	Batch 790 | BCE Loss: 0.6933
+	Batch 800 | BCE Loss: 0.6932
+	Batch 810 | BCE Loss: 0.6931
+	Batch 820 | BCE Loss: 0.6932
+	Batch 830 | BCE Loss: 0.6931
+	Batch 840 | BCE Loss: 0.6931
+	Batch 850 | BCE Loss: 0.6931
+	Batch 860 | BCE Loss: 0.6930
+	Batch 870 | BCE Loss: 0.6934
+	Batch 880 | BCE Loss: 0.6932
+	Batch 890 | BCE Loss: 0.6931
+	Batch 900 | BCE Loss: 0.6931
+	Batch 910 | BCE Loss: 0.6931
+	Batch 920 | BCE Loss: 0.6932
+	Batch 930 | BCE Loss: 0.6931
+	Batch 940 | BCE Loss: 0.6931
+	Batch 950 | BCE Loss: 0.6936
+	Batch 960 | BCE Loss: 0.6931
+	Batch 970 | BCE Loss: 0.6930
+	Batch 980 | BCE Loss: 0.6936
+	Batch 990 | BCE Loss: 0.6931
+	Batch 1000 | BCE Loss: 0.6932
+	Batch 1010 | BCE Loss: 0.6931
+	Batch 1020 | BCE Loss: 0.6934
+	Batch 1030 | BCE Loss: 0.6931
+	Batch 1040 | BCE Loss: 0.6931
+	Batch 1050 | BCE Loss: 0.6932
+	Batch 1060 | BCE Loss: 0.6932
+	Batch 1070 | BCE Loss: 0.6933
+	Batch 1080 | BCE Loss: 0.6930
+	Batch 1090 | BCE Loss: 0.6935
+	Batch 1100 | BCE Loss: 0.6932
+	Batch 1110 | BCE Loss: 0.6931
+	Batch 1120 | BCE Loss: 0.6932
+	Batch 1130 | BCE Loss: 0.6931
+	Batch 1140 | BCE Loss: 0.6933
+	Batch 1150 | BCE Loss: 0.6931
+	Batch 1160 | BCE Loss: 0.6929
+	Batch 1170 | BCE Loss: 0.6929
+	Batch 1180 | BCE Loss: 0.6931
+	Batch 1190 | BCE Loss: 0.6932
+	Batch 1200 | BCE Loss: 0.6931
+	Batch 1210 | BCE Loss: 0.6932
+	Batch 1220 | BCE Loss: 0.6933
+	Batch 1230 | BCE Loss: 0.6930
+	Batch 1240 | BCE Loss: 0.6931
+	Batch 1250 | BCE Loss: 0.6931
+	Batch 1260 | BCE Loss: 0.6932
+	Batch 1270 | BCE Loss: 0.6931
+	Batch 1280 | BCE Loss: 0.6931
+	Batch 1290 | BCE Loss: 0.6933
+	Batch 1300 | BCE Loss: 0.6930
+	Batch 1310 | BCE Loss: 0.6931
+	Batch 1320 | BCE Loss: 0.6934
+	Batch 1330 | BCE Loss: 0.6926
+	Batch 1340 | BCE Loss: 0.6932
+	Batch 1350 | BCE Loss: 0.6932
